@@ -2,11 +2,12 @@ import streamlit as st
 import ccxt
 import pandas as pd
 from ta.trend import EMAIndicator
+from ta.momentum import RSIIndicator
 from datetime import datetime
 import pytz
 
 # Configuração da página
-st.set_page_config(page_title="Análise Heikin-Ashi com Volume", layout="wide")
+st.set_page_config(page_title="Análise Heikin-Ashi com Volume e RSI", layout="wide")
 
 # Lista de pares fixos
 symbols = [
@@ -61,6 +62,7 @@ def detect_volume_spike(df, N=2):
     if last_volume > mean + N * std:
         return "🚨 Pico de Volume"
     return ""
+
 # Classificação do RSI baseado no HA
 def classificar_rsi(valor):
     if valor > 70:
@@ -73,7 +75,7 @@ def classificar_rsi(valor):
         return "📉 Venda Fraca"
     else:
         return "🚨 Sobrevendido"
-        
+
 # Função com cache de 30 minutos
 @st.cache_data(ttl=1800)  # Atualiza a cada 1800 segundos = 30 minutos
 def carregar_dados():
@@ -84,27 +86,29 @@ def carregar_dados():
             df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
             ha_df = get_heikin_ashi(df)
+
             tendencia = analyze_ha_trend(ha_df)
             volume_alerta = detect_volume_spike(df)
+
+            # RSI sobre HA
             rsi = RSIIndicator(close=ha_df["HA_Close"], window=14).rsi()
             rsi_valor = rsi.iloc[-1]
             rsi_status = classificar_rsi(rsi_valor)
-            
+
             resultados.append((symbol, tendencia, volume_alerta, rsi_status))
         except Exception as e:
-            resultados.append((symbol, f"Erro: {str(e)}", ""))
+            resultados.append((symbol, f"Erro: {str(e)}", "", ""))
+
     return pd.DataFrame(resultados, columns=["Par", "Tendência", "Volume", "RSI (HA)"])
 
 # Título e informações
-st.title("📊 Monitor de Criptomoedas - By XSpeck")
+st.title("📊 Monitor de Criptomoedas - Heikin Ashi + Volume + RSI")
 st.caption("🔁 Atualização automática a cada 30 minutos")
 
 # Horário da última atualização
-
 fuso_brasil = pytz.timezone("America/Sao_Paulo")
 hora_brasil = datetime.now(fuso_brasil)
 st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H:%M:%S')} (Horário de Brasília)**")
-
 
 # Filtro de busca
 filtro = st.text_input("🔍 Filtrar par (ex: BTC, ETH):", "").upper()
@@ -118,5 +122,3 @@ if filtro:
 
 # Exibir resultado
 st.dataframe(df_result, use_container_width=True)
-
-
