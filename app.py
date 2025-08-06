@@ -86,10 +86,14 @@ def carregar_dados():
             ha_df = get_heikin_ashi(df)
             tendencia = analyze_ha_trend(ha_df)
             volume_alerta = detect_volume_spike(df)
-            resultados.append((symbol, tendencia, volume_alerta))
+            rsi = RSIIndicator(close=ha_df["HA_Close"], window=14).rsi()
+            rsi_valor = rsi.iloc[-1]
+            rsi_status = classificar_rsi(rsi_valor)
+            
+            resultados.append((symbol, tendencia, volume_alerta, rsi_status))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", ""))
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "Volume"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência", "Volume", "RSI (HA)"])
 
 # Título e informações
 st.title("📊 Monitor de Criptomoedas - By XSpeck")
@@ -114,4 +118,5 @@ if filtro:
 
 # Exibir resultado
 st.dataframe(df_result, use_container_width=True)
+
 
