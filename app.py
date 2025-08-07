@@ -99,7 +99,7 @@ def carregar_dados():
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", ""))
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "Volume", "RSI (HA)"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI (HA)", "Volume"])
 
 # Título e informações
 st.title("📊 Monitor de Criptomoedas - Heikin Ashi + Volume + RSI")
@@ -122,3 +122,4 @@ if filtro:
 
 # Exibir resultado
 st.dataframe(df_result, use_container_width=True)
+
