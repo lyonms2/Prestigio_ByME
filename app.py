@@ -94,11 +94,11 @@ def carregar_dados():
             rsi_valor = round(rsi.iloc[-1], 2)
             rsi_status = f"{rsi_valor} - {classificar_rsi(rsi_valor)}"
 
-            resultados.append((symbol, tendencia, volume_alerta, rsi_status))
+            resultados.append((symbol, tendencia, rsi_status, volume_alerta))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", ""))
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "Volume", "RSI (HA)"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI (HA)", "Volume"])
 
 # Título e informações
 st.title("📊 Monitor de Criptomoedas - Heikin Ashi + Volume + RSI")
@@ -121,3 +121,4 @@ if st.button("🔄 Atualizar Dados"):
         df_result = df_result[df_result["Par"].str.contains(filtro)]
 
     st.dataframe(df_result, use_container_width=True)
+
