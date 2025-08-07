@@ -1,126 +1,95 @@
-import streamlit as st
-import ccxt
+import requests
 import pandas as pd
-from ta.trend import EMAIndicator
-from ta.momentum import RSIIndicator
-from datetime import datetime
-import pytz
 
-# Configuração da página
-st.set_page_config(page_title="Análise Heikin-Ashi com Volume e RSI", layout="wide")
+# Lista de moedas
+TOP200 = {
+    "BTC-USDT","ETH-USDT","BNB-USDT","SOL-USDT","XRP-USDT","DOGE-USDT",
+    "ADA-USDT","AVAX-USDT","MATIC-USDT","DOT-USDT","TRX-USDT","SHIB-USDT",
+    "UNI-USDT","LINK-USDT","ETC-USDT","FIL-USDT"
+}
 
-# Lista de pares fixos
-symbols = [
-    "BTC-USDT", "ETH-USDT", "SOL-USDT", "XRP-USDT", "XMR-USDT", "ENA-USDT", "DOGE-USDT",
-    "FARTCOIN-USDT", "ADA-USDT", "LTC-USDT", "SUI-USDT", "SEI-USDT", "PEPE-USDT", "LINK-USDT",
-    "HYPE-USDT", "TON-USDT", "UNI-USDT", "PENGU-USDT", "AVAX-USDT", "TRX-USDT", "HBAR-USDT",
-    "NEAR-USDT", "NODE-USDT", "ONDO-USDT", "SHIB-USDT", "TAO-USDT", "XLM-USDT", "TRUMP-USDT",
-    "DOT-USDT", "FET-USDT", "INJ-USDT", "WIF-USDT", "TIA-USDT", "BNB-USDT", "ILV-USDT",
-    "ZBCN-USDT", "IKA-USDT", "SUP-USDT", "GAIA-USDT", "BONK-USDT", "XU3O8-USDT", "NOBODY-USDT",
-    "AGT-USDT", "URANUS-USDT", "A47-USDT", "SNAKES-USDT", "NEWT-USDT", "CRV-USDT", "TROLL-USDT",
-    "VRA-USDT", "XPR-USDT", "USELESS-USDT", "THINK-USDT", "CFX-USDT", "SPX-USDT", "BCH-USDT",
-    "ARB-USDT", "KAS-USDT", "S-USDT", "AAVE-USDT", "ES-USDT", "XNY-USDT", "OM-USDT", "MANYU-USDT",
-    "ZRO-USDT", "ICNT-USDT", "ALGO-USDT", "HAIO-USDT", "APT-USDT", "ICP-USDT", "NOC-USDT"
-]
+INTERVAL = "1h"  # Pode ser alterado
+LIMIT = 100      # Velas
 
-# Inicializa KuCoin
-exchange = ccxt.kucoin()
+def get_klines(symbol):
+    url = f"https://api.binance.com/api/v3/klines?symbol={symbol.replace('-', '')}&interval={INTERVAL}&limit={LIMIT}"
+    r = requests.get(url)
+    data = r.json()
+    df = pd.DataFrame(data, columns=[
+        'time','open','high','low','close','volume','close_time','quote_asset_volume',
+        'number_of_trades','taker_buy_base','taker_buy_quote','ignore'
+    ])
+    df[['open','high','low','close','volume']] = df[['open','high','low','close','volume']].astype(float)
+    return df
 
-# Função para calcular Heikin Ashi
-def get_heikin_ashi(df):
+def heiken_ashi(df):
     ha_df = df.copy()
-    ha_df['HA_Close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
-    ha_open = [(df['open'][0] + df['close'][0]) / 2]
-    for i in range(1, len(df)):
-        ha_open.append((ha_open[i-1] + ha_df['HA_Close'][i-1]) / 2)
-    ha_df['HA_Open'] = ha_open
-    ha_df['HA_High'] = ha_df[['HA_Open', 'HA_Close', 'high']].max(axis=1)
-    ha_df['HA_Low'] = ha_df[['HA_Open', 'HA_Close', 'low']].min(axis=1)
-    return ha_df[['timestamp', 'HA_Open', 'HA_High', 'HA_Low', 'HA_Close']]
+    ha_df['HA_close'] = (ha_df['open'] + ha_df['high'] + ha_df['low'] + ha_df['close']) / 4
+    ha_df['HA_open'] = 0.0
+    ha_df['HA_open'].iloc[0] = (ha_df['open'].iloc[0] + ha_df['close'].iloc[0]) / 2
+    for i in range(1, len(ha_df)):
+        ha_df['HA_open'].iloc[i] = (ha_df['HA_open'].iloc[i-1] + ha_df['HA_close'].iloc[i-1]) / 2
+    ha_df['HA_high'] = ha_df[['high', 'HA_open', 'HA_close']].max(axis=1)
+    ha_df['HA_low'] = ha_df[['low', 'HA_open', 'HA_close']].min(axis=1)
+    return ha_df
 
-# Lógica para identificar tendência
-def analyze_ha_trend(df):
-    last = df.iloc[-1]
-    prev = df.iloc[-2]
-    if prev['HA_Close'] < prev['HA_Open'] and last['HA_Close'] > last['HA_Open']:
-        return "🔼 Reversão p/ Alta"
-    elif prev['HA_Close'] > prev['HA_Open'] and last['HA_Close'] < last['HA_Open']:
-        return "🔽 Reversão p/ Baixa"
-    elif last['HA_Close'] > last['HA_Open'] and prev['HA_Close'] > prev['HA_Open']:
-        return "🟢 Continuação de Alta"
-    elif last['HA_Close'] < last['HA_Open'] and prev['HA_Close'] < prev['HA_Open']:
-        return "🔴 Continuação de Baixa"
-    else:
-        return "🔍 Indefinido"
+def rsi(df, period=14):
+    delta = df['close'].diff()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.rolling(window=period).mean()
+    avg_loss = loss.rolling(window=period).mean()
+    rs = avg_gain / avg_loss
+    return 100 - (100 / (1 + rs))
 
-# Alerta de pico de volume
-def detect_volume_spike(df, N=2):
-    volumes = df['volume'][:-1]
-    last_volume = df['volume'].iloc[-1]
-    mean = volumes.mean()
-    std = volumes.std()
-    if last_volume > mean + N * std:
-        return "🚨 Pico de Volume"
-    return ""
+def stochastic(df, k_period=14, d_period=3):
+    low_min = df['low'].rolling(window=k_period).min()
+    high_max = df['high'].rolling(window=k_period).max()
+    k = 100 * (df['close'] - low_min) / (high_max - low_min)
+    d = k.rolling(window=d_period).mean()
+    return k, d
 
-# Classificação do RSI baseado no HA
-def classificar_rsi(valor):
-    if valor > 70:
-        return "🚨 Sobrecomprado"
-    elif valor > 60:
-        return "📈 Compra Fraca"
-    elif valor > 40:
-        return "⚪ Neutro"
-    elif valor > 30:
-        return "📉 Venda Fraca"
-    else:
-        return "🚨 Sobrevendido"
+resultados = []
 
-# Função com cache de 30 minutos
-@st.cache_data(ttl=1800)  # Atualiza a cada 1800 segundos = 30 minutos
-def carregar_dados():
-    resultados = []
-    for symbol in symbols:
-        try:
-            ohlcv = exchange.fetch_ohlcv(symbol, timeframe='30m', limit=20)
-            df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-            ha_df = get_heikin_ashi(df)
+for symbol in TOP200:
+    df = get_klines(symbol)
+    df = heiken_ashi(df)
+    df['RSI'] = rsi(df)
+    df['%K'], df['%D'] = stochastic(df)
 
-            tendencia = analyze_ha_trend(ha_df)
-            volume_alerta = detect_volume_spike(df)
+    ultima = df.iloc[-1]
+    penultima = df.iloc[-2]
 
-            # RSI sobre HA
-            rsi = RSIIndicator(close=ha_df["HA_Close"], window=14).rsi()
-            rsi_valor = rsi.iloc[-1]
-            rsi_status = classificar_rsi(rsi_valor)
+    # Filtro principal: troca de cor Heiken Ashi
+    if (penultima['HA_close'] > penultima['HA_open'] and ultima['HA_close'] < ultima['HA_open']) or \
+       (penultima['HA_close'] < penultima['HA_open'] and ultima['HA_close'] > ultima['HA_open']):
+        
+        # Informações adicionais
+        rsi_status = ""
+        if ultima['RSI'] > 70:
+            rsi_status = "Sobrecomprado"
+        elif 60 <= ultima['RSI'] <= 70:
+            rsi_status = "Comprado fraco"
+        elif 30 <= ultima['RSI'] <= 40:
+            rsi_status = "Vendido fraco"
+        elif ultima['RSI'] < 30:
+            rsi_status = "Sobrevendido"
 
-            resultados.append((symbol, tendencia, rsi_status, volume_alerta))
-        except Exception as e:
-            resultados.append((symbol, f"Erro: {str(e)}", "", ""))
+        # Cruzamento Estocástico
+        cruzamento = ""
+        if df['%K'].iloc[-2] < df['%D'].iloc[-2] and df['%K'].iloc[-1] > df['%D'].iloc[-1]:
+            cruzamento = "Cruzamento para CIMA"
+        elif df['%K'].iloc[-2] > df['%D'].iloc[-2] and df['%K'].iloc[-1] < df['%D'].iloc[-1]:
+            cruzamento = "Cruzamento para BAIXO"
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI (HA)", "Volume"])
+        resultados.append({
+            "Moeda": symbol,
+            "RSI": round(ultima['RSI'], 2),
+            "Status RSI": rsi_status,
+            "Estocástico %K": round(ultima['%K'], 2),
+            "Estocástico %D": round(ultima['%D'], 2),
+            "Cruzamento Estocástico": cruzamento
+        })
 
-# Título e informações
-st.title("📊 Monitor de Criptomoedas - Heikin Ashi + Volume + RSI")
-st.caption("🔁 Atualização automática a cada 30 minutos")
-
-# Horário da última atualização
-fuso_brasil = pytz.timezone("America/Sao_Paulo")
-hora_brasil = datetime.now(fuso_brasil)
-st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H:%M:%S')} (Horário de Brasília)**")
-
-# Filtro de busca
-filtro = st.text_input("🔍 Filtrar par (ex: BTC, ETH):", "").upper()
-
-# Carregamento de dados
-df_result = carregar_dados()
-
-# Aplicar filtro se houver
-if filtro:
-    df_result = df_result[df_result["Par"].str.contains(filtro)]
-
-# Exibir resultado
-st.dataframe(df_result, use_container_width=True)
-
-
+df_res = pd.DataFrame(resultados)
+print(df_res)
