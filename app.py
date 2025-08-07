@@ -1,95 +1,78 @@
+import streamlit as st
 import requests
 import pandas as pd
+import numpy as np
 
-# Lista de moedas
-TOP200 = {
-    "BTC-USDT","ETH-USDT","BNB-USDT","SOL-USDT","XRP-USDT","DOGE-USDT",
-    "ADA-USDT","AVAX-USDT","MATIC-USDT","DOT-USDT","TRX-USDT","SHIB-USDT",
-    "UNI-USDT","LINK-USDT","ETC-USDT","FIL-USDT"
-}
+st.set_page_config(page_title="Analisador Heikin Ashi + Indicadores", layout="wide")
 
-INTERVAL = "1h"  # Pode ser alterado
-LIMIT = 100      # Velas
+st.title("📊 Analisador Heikin Ashi + RSI + Estocástico")
 
-def get_klines(symbol):
-    url = f"https://api.binance.com/api/v3/klines?symbol={symbol.replace('-', '')}&interval={INTERVAL}&limit={LIMIT}"
-    r = requests.get(url)
-    data = r.json()
-    df = pd.DataFrame(data, columns=[
-        'time','open','high','low','close','volume','close_time','quote_asset_volume',
-        'number_of_trades','taker_buy_base','taker_buy_quote','ignore'
-    ])
-    df[['open','high','low','close','volume']] = df[['open','high','low','close','volume']].astype(float)
-    return df
+# Entrada de dados
+symbol = st.text_input("Par de moedas (ex: BTC-USDT)", value="BTC-USDT")
+interval = st.selectbox("Intervalo", ["1m", "5m", "15m", "30m", "1h", "4h", "1d"])
+limit = st.slider("Quantidade de candles", 20, 500, 100)
 
-def heiken_ashi(df):
-    ha_df = df.copy()
-    ha_df['HA_close'] = (ha_df['open'] + ha_df['high'] + ha_df['low'] + ha_df['close']) / 4
-    ha_df['HA_open'] = 0.0
-    ha_df['HA_open'].iloc[0] = (ha_df['open'].iloc[0] + ha_df['close'].iloc[0]) / 2
-    for i in range(1, len(ha_df)):
-        ha_df['HA_open'].iloc[i] = (ha_df['HA_open'].iloc[i-1] + ha_df['HA_close'].iloc[i-1]) / 2
-    ha_df['HA_high'] = ha_df[['high', 'HA_open', 'HA_close']].max(axis=1)
-    ha_df['HA_low'] = ha_df[['low', 'HA_open', 'HA_close']].min(axis=1)
-    return ha_df
-
-def rsi(df, period=14):
-    delta = df['close'].diff()
-    gain = delta.where(delta > 0, 0)
-    loss = -delta.where(delta < 0, 0)
-    avg_gain = gain.rolling(window=period).mean()
-    avg_loss = loss.rolling(window=period).mean()
-    rs = avg_gain / avg_loss
-    return 100 - (100 / (1 + rs))
-
-def stochastic(df, k_period=14, d_period=3):
-    low_min = df['low'].rolling(window=k_period).min()
-    high_max = df['high'].rolling(window=k_period).max()
-    k = 100 * (df['close'] - low_min) / (high_max - low_min)
-    d = k.rolling(window=d_period).mean()
-    return k, d
-
-resultados = []
-
-for symbol in TOP200:
-    df = get_klines(symbol)
-    df = heiken_ashi(df)
-    df['RSI'] = rsi(df)
-    df['%K'], df['%D'] = stochastic(df)
-
-    ultima = df.iloc[-1]
-    penultima = df.iloc[-2]
-
-    # Filtro principal: troca de cor Heiken Ashi
-    if (penultima['HA_close'] > penultima['HA_open'] and ultima['HA_close'] < ultima['HA_open']) or \
-       (penultima['HA_close'] < penultima['HA_open'] and ultima['HA_close'] > ultima['HA_open']):
+if st.button("Analisar"):
+    try:
+        # Pegando dados da API da Binance
+        url = f"https://api.binance.com/api/v3/klines?symbol={symbol.replace('-', '')}&interval={interval}&limit={limit}"
+        data = requests.get(url).json()
         
-        # Informações adicionais
-        rsi_status = ""
-        if ultima['RSI'] > 70:
-            rsi_status = "Sobrecomprado"
-        elif 60 <= ultima['RSI'] <= 70:
-            rsi_status = "Comprado fraco"
-        elif 30 <= ultima['RSI'] <= 40:
-            rsi_status = "Vendido fraco"
-        elif ultima['RSI'] < 30:
-            rsi_status = "Sobrevendido"
+        # Criando DataFrame
+        df = pd.DataFrame(data, columns=[
+            "time", "open", "high", "low", "close", "volume",
+            "close_time", "quote_asset_volume", "trades",
+            "taker_buy_base", "taker_buy_quote", "ignore"
+        ])
+        
+        # Convertendo para numérico
+        df[["open", "high", "low", "close", "volume"]] = df[["open", "high", "low", "close", "volume"]].astype(float)
 
-        # Cruzamento Estocástico
-        cruzamento = ""
-        if df['%K'].iloc[-2] < df['%D'].iloc[-2] and df['%K'].iloc[-1] > df['%D'].iloc[-1]:
-            cruzamento = "Cruzamento para CIMA"
-        elif df['%K'].iloc[-2] > df['%D'].iloc[-2] and df['%K'].iloc[-1] < df['%D'].iloc[-1]:
-            cruzamento = "Cruzamento para BAIXO"
+        # Criando candles Heikin Ashi
+        ha_df = df.copy()
+        ha_df["ha_close"] = (ha_df["open"] + ha_df["high"] + ha_df["low"] + ha_df["close"]) / 4
+        ha_df["ha_open"] = 0.0
+        ha_df.loc[0, "ha_open"] = (ha_df.loc[0, "open"] + ha_df.loc[0, "close"]) / 2
 
-        resultados.append({
-            "Moeda": symbol,
-            "RSI": round(ultima['RSI'], 2),
-            "Status RSI": rsi_status,
-            "Estocástico %K": round(ultima['%K'], 2),
-            "Estocástico %D": round(ultima['%D'], 2),
-            "Cruzamento Estocástico": cruzamento
-        })
+        for i in range(1, len(ha_df)):
+            ha_df.loc[i, "ha_open"] = (ha_df.loc[i-1, "ha_open"] + ha_df.loc[i-1, "ha_close"]) / 2
 
-df_res = pd.DataFrame(resultados)
-print(df_res)
+        ha_df["ha_high"] = ha_df[["high", "ha_open", "ha_close"]].max(axis=1)
+        ha_df["ha_low"] = ha_df[["low", "ha_open", "ha_close"]].min(axis=1)
+
+        # RSI
+        def rsi(series, period=14):
+            delta = series.diff()
+            gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+            loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+            rs = gain / loss
+            return 100 - (100 / (1 + rs))
+
+        ha_df["RSI"] = rsi(ha_df["ha_close"])
+
+        # Estocástico
+        low_min = ha_df["low"].rolling(window=14).min()
+        high_max = ha_df["high"].rolling(window=14).max()
+        ha_df["%K"] = ((ha_df["close"] - low_min) / (high_max - low_min)) * 100
+        ha_df["%D"] = ha_df["%K"].rolling(window=3).mean()
+
+        # Identificação de troca de cor no último candle
+        last_color = "Alta" if ha_df.iloc[-2]["ha_close"] > ha_df.iloc[-2]["ha_open"] else "Baixa"
+        current_color = "Alta" if ha_df.iloc[-1]["ha_close"] > ha_df.iloc[-1]["ha_open"] else "Baixa"
+        troca_cor = last_color != current_color
+
+        # Cruzamento do estocástico
+        cruzamento_cima = ha_df.iloc[-2]["%K"] < ha_df.iloc[-2]["%D"] and ha_df.iloc[-1]["%K"] > ha_df.iloc[-1]["%D"]
+        cruzamento_baixo = ha_df.iloc[-2]["%K"] > ha_df.iloc[-2]["%D"] and ha_df.iloc[-1]["%K"] < ha_df.iloc[-1]["%D"]
+
+        # Exibição
+        st.subheader("📈 Últimos Candles")
+        st.dataframe(ha_df[["ha_open", "ha_high", "ha_low", "ha_close", "RSI", "%K", "%D"]].tail(10))
+
+        st.subheader("📌 Sinais")
+        st.write(f"Troca de cor no último candle: **{'Sim' if troca_cor else 'Não'}**")
+        st.write(f"Cruzamento Estocástico para cima: **{'Sim' if cruzamento_cima else 'Não'}**")
+        st.write(f"Cruzamento Estocástico para baixo: **{'Sim' if cruzamento_baixo else 'Não'}**")
+    
+    except Exception as e:
+        st.error(f"Erro: {e}")
