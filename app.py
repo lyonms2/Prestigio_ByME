@@ -94,14 +94,19 @@ def carregar_dados():
             rsi_valor = round(rsi.iloc[-1], 2)
             rsi_status = f"{rsi_valor} - {classificar_rsi(rsi_valor)}"
 
+            # Criar link para TradingView
+            tv_symbol = symbol.replace("-", "")
+            link = f"https://www.tradingview.com/chart/?symbol=BINANCE:{tv_symbol}"
+            par_link = f"[{symbol}]({link})"
+
             resultados.append((symbol, tendencia, rsi_status, volume_alerta))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", ""))
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI (HA)", "Volume"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume"])
 
 # Título e informações
-st.title("📊 Monitor de Criptomoedas - Heikin Ashi + Volume + RSI")
+st.title("📊 Monitor de Criptomoedas")
 st.caption("🔄 Clique no botão abaixo para atualizar os dados")
 
 # Horário da última atualização
@@ -120,5 +125,8 @@ if st.button("🔄 Atualizar Dados"):
     if filtro:
         df_result = df_result[df_result["Par"].str.contains(filtro)]
 
-    st.dataframe(df_result, use_container_width=True)
+    #st.dataframe(df_result, use_container_width=True)
+    # Mostrar tabela com links clicáveis
+    st.markdown(df_result.to_markdown(index=False), unsafe_allow_html=True)
+
 
