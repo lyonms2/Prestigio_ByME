@@ -95,7 +95,7 @@ def carregar_dados():
             rsi_valor = rsi.iloc[-1]
             rsi_status = classificar_rsi(rsi_valor)
 
-            resultados.append((symbol, tendencia, volume_alerta, rsi_status))
+            resultados.append((symbol, tendencia, rsi_status, volume_alerta))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", ""))
 
@@ -122,4 +122,5 @@ if filtro:
 
 # Exibir resultado
 st.dataframe(df_result, use_container_width=True)
+
 
