@@ -117,17 +117,21 @@ fuso_brasil = pytz.timezone("America/Sao_Paulo")
 hora_brasil = datetime.now(fuso_brasil)
 st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H:%M:%S')} (Horário de Brasília)****")
 
-# Botão para atualizar
 if st.button("🔄 Atualizar Dados"):
     df_result = carregar_dados()
-    #st.dataframe(df_result, use_container_width=True)
-    # Exibir resultados com botão
+    
+    # Mostra tabela só com dados
+    st.dataframe(df_result[["Par", "Tendência", "RSI", "Volume"]], use_container_width=True)
+
+    # Cria linha de botões separados, um por cada par
+    cols = st.columns(len(df_result))
     for i, row in df_result.iterrows():
-        col1, col2, col3, col4, col5 = st.columns([2, 3, 3, 3, 2])
-        col1.write(row["Par"])
-        col2.write(row["Tendência"])
-        col3.write(row["RSI"])
-        col4.write(row["Volume"])
-        col5.link_button("📊 Ver Gráfico", tradingview_link(row["Par"]))
+        with cols[i]:
+            if st.button("📊 Ver Gráfico", key=f"btn_{row['Par']}"):
+                url = tradingview_link(row["Par"])
+                st.experimental_set_query_params()  # Limpa query params (opcional)
+                # Abre o link numa nova aba
+                js = f"window.open('{url}')"  # JavaScript para abrir o link
+                st.components.v1.html(f"<script>{js}</script>")
 
 
