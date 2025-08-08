@@ -5,10 +5,8 @@ from ta.momentum import RSIIndicator
 from datetime import datetime
 import pytz
 
-# Configuração da página
 st.set_page_config(page_title="Análise Heikin-Ashi com Volume e RSI", layout="wide")
 
-# Lista de pares fixos
 symbols = [
     "BTC-USDT", "ETH-USDT", "SOL-USDT", "XRP-USDT", "XMR-USDT", "ENA-USDT", "DOGE-USDT",
     "FARTCOIN-USDT", "ADA-USDT", "LTC-USDT", "SUI-USDT", "SEI-USDT", "PEPE-USDT", "LINK-USDT",
@@ -22,10 +20,8 @@ symbols = [
     "ZRO-USDT", "ICNT-USDT", "ALGO-USDT", "HAIO-USDT", "APT-USDT", "ICP-USDT", "NOC-USDT"
 ]
 
-# Inicializa KuCoin
 exchange = ccxt.kucoin()
 
-# Funções auxiliares
 def get_heikin_ashi(df):
     ha_df = df.copy()
     ha_df['HA_Close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
@@ -72,6 +68,9 @@ def classificar_rsi(valor):
     else:
         return "🚨 Sobrevendido"
 
+def tradingview_link(symbol):
+    return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
+
 def carregar_dados():
     resultados = []
     for symbol in symbols:
@@ -94,7 +93,6 @@ def carregar_dados():
 
     return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume"])
 
-# Interface Streamlit
 st.title("📊 Monitor de Criptomoedas")
 st.caption("🔄 Clique no botão abaixo para atualizar os dados")
 
@@ -104,11 +102,12 @@ st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H
 
 if st.button("🔄 Atualizar Dados"):
     df_result = carregar_dados()
-    par_selecionado = st.selectbox("🔍 Escolha o par para visualizar:", options=df_result["Par"].tolist())
-    df_filtrado = df_result[df_result["Par"] == par_selecionado]
+    st.dataframe(df_result, use_container_width=True)
 
-    url = f"https://www.tradingview.com/chart/?symbol=KUCOIN:{par_selecionado.replace('-', '')}"
-    link_md = f"[📊 Abrir gráfico no TradingView]({url})"
+    filtro_link = st.text_input("🔍 Filtrar links por par (ex: BTC, ETH):", "").upper()
 
-    st.dataframe(df_filtrado, use_container_width=True)
-    st.markdown(link_md)
+    st.markdown("### 🔗 Abrir gráfico no TradingView")
+    for par in df_result["Par"]:
+        if filtro_link in par:
+            url = tradingview_link(par)
+            st.markdown(f"- [📊 {par}]({url})", unsafe_allow_html=True)
