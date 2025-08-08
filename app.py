@@ -100,14 +100,19 @@ fuso_brasil = pytz.timezone("America/Sao_Paulo")
 hora_brasil = datetime.now(fuso_brasil)
 st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H:%M:%S')} (Horário de Brasília)**")
 
+if "df_result" not in st.session_state:
+    st.session_state.df_result = None
+
 if st.button("🔄 Atualizar Dados"):
-    df_result = carregar_dados()
-    st.dataframe(df_result, use_container_width=True)
+    st.session_state.df_result = carregar_dados()
+
+if st.session_state.df_result is not None:
+    st.dataframe(st.session_state.df_result, use_container_width=True)
 
     filtro_link = st.text_input("🔍 Filtrar links por par (ex: BTC, ETH):", "").upper()
 
     st.markdown("### 🔗 Abrir gráfico no TradingView")
-    for par in df_result["Par"]:
+    for par in st.session_state.df_result["Par"]:
         if filtro_link in par:
             url = tradingview_link(par)
             st.markdown(f"- [📊 {par}]({url})", unsafe_allow_html=True)
