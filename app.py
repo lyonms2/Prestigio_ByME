@@ -110,16 +110,13 @@ fuso_brasil = pytz.timezone("America/Sao_Paulo")
 hora_brasil = datetime.now(fuso_brasil)
 st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H:%M:%S')} (Horário de Brasília)****")
 
-# Filtro de busca
+# Filtro de busca (agora antes do botão de atualizar)
 filtro = st.text_input("🔍 Filtrar par (ex: BTC, ETH):", "").upper()
 
 # Botão para atualizar
 if st.button("🔄 Atualizar Dados"):
     # Carrega os dados sempre que clicar em "Atualizar Dados"
     df_result = carregar_dados()
-
-    # Filtro de busca
-    filtro = st.text_input("🔍 Filtrar par (ex: BTC, ETH):", "").upper()
 
     # Aplicar filtro se houver
     if filtro:
