@@ -33,19 +33,33 @@ def get_heikin_ashi(df):
     ha_df['HA_Low'] = ha_df[['HA_Open', 'HA_Close', 'low']].min(axis=1)
     return ha_df[['timestamp', 'HA_Open', 'HA_High', 'HA_Low', 'HA_Close']]
 
+def count_consecutive_candles(df):
+    # Conta quantas velas consecutivas têm mesma cor da última vela
+    last_bull = df.iloc[-1]['HA_Close'] > df.iloc[-1]['HA_Open']
+    count = 0
+    for i in range(len(df)-1, -1, -1):
+        is_bull = df.iloc[i]['HA_Close'] > df.iloc[i]['HA_Open']
+        if is_bull == last_bull:
+            count += 1
+        else:
+            break
+    return count, last_bull
+
 def analyze_ha_trend(df):
+    count, last_bull = count_consecutive_candles(df)
     last = df.iloc[-1]
     prev = df.iloc[-2]
     if prev['HA_Close'] < prev['HA_Open'] and last['HA_Close'] > last['HA_Open']:
         return "🔼 Reversão p/ Alta"
     elif prev['HA_Close'] > prev['HA_Open'] and last['HA_Close'] < last['HA_Open']:
         return "🔽 Reversão p/ Baixa"
-    elif last['HA_Close'] > last['HA_Open'] and prev['HA_Close'] > prev['HA_Open']:
-        return "🟢 Continuação de Alta"
-    elif last['HA_Close'] < last['HA_Open'] and prev['HA_Close'] < prev['HA_Open']:
-        return "🔴 Continuação de Baixa"
+    elif last_bull and prev['HA_Close'] > prev['HA_Open']:
+        return f"🟢 Continuação de Alta ({count} velas)"
+    elif not last_bull and prev['HA_Close'] < prev['HA_Open']:
+        return f"🔴 Continuação de Baixa ({count} velas)"
     else:
         return "🔍 Indefinido"
+
 
 def detect_volume_spike(df, N=2):
     volumes = df['volume'][:-1]
@@ -133,3 +147,4 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
