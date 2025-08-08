@@ -5,8 +5,10 @@ from ta.momentum import RSIIndicator
 from datetime import datetime
 import pytz
 
+# Configuração da página
 st.set_page_config(page_title="Análise Heikin-Ashi com Volume e RSI", layout="wide")
 
+# Lista de pares fixos
 symbols = [
     "BTC-USDT", "ETH-USDT", "SOL-USDT", "XRP-USDT", "XMR-USDT", "ENA-USDT", "DOGE-USDT",
     "FARTCOIN-USDT", "ADA-USDT", "LTC-USDT", "SUI-USDT", "SEI-USDT", "PEPE-USDT", "LINK-USDT",
@@ -20,8 +22,10 @@ symbols = [
     "ZRO-USDT", "ICNT-USDT", "ALGO-USDT", "HAIO-USDT", "APT-USDT", "ICP-USDT", "NOC-USDT"
 ]
 
+# Inicializa KuCoin
 exchange = ccxt.kucoin()
 
+# Funções auxiliares (Heikin Ashi, análise, volume, RSI)
 def get_heikin_ashi(df):
     ha_df = df.copy()
     ha_df['HA_Close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
@@ -93,6 +97,7 @@ def carregar_dados():
 
     return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume"])
 
+# Interface Streamlit
 st.title("📊 Monitor de Criptomoedas")
 st.caption("🔄 Clique no botão abaixo para atualizar os dados")
 
@@ -102,10 +107,7 @@ st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H
 
 if st.button("🔄 Atualizar Dados"):
     df_result = carregar_dados()
-    st.dataframe(df_result, use_container_width=True)
-
-    st.markdown("### 🔗 Abrir gráfico no TradingView")
-    for par in df_result["Par"]:
-        url = tradingview_link(par)
-        st.markdown(f"- [📊 {par}]( {url} )", unsafe_allow_html=True)
-
+    # Adiciona coluna com links Markdown clicáveis para o TradingView
+    df_result["Gráfico"] = df_result["Par"].apply(lambda p: f"[📊 Abrir](https://www.tradingview.com/chart/?symbol=KUCOIN:{p.replace('-', '')})")
+    # Exibe a tabela com links clicáveis usando Markdown
+    st.markdown(df_result.to_markdown(index=False), unsafe_allow_html=True)
