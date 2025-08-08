@@ -76,6 +76,10 @@ def classificar_rsi(valor):
     else:
         return "🚨 Sobrevendido"
 
+# Criar link para o TradingView
+def tradingview_link(symbol):
+    return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
+
 # Função para carregar os dados
 def carregar_dados():
     resultados = []
@@ -93,6 +97,9 @@ def carregar_dados():
             rsi = RSIIndicator(close=ha_df["HA_Close"], window=14).rsi()
             rsi_valor = round(rsi.iloc[-1], 2)
             rsi_status = f"{rsi_valor} - {classificar_rsi(rsi_valor)}"
+
+            # Link para gráfico
+            link_grafico = f"[📊 Abrir]({tradingview_link(symbol)})"
 
             
             resultados.append((symbol, tendencia, rsi_status, volume_alerta))
@@ -114,3 +121,4 @@ st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H
 if st.button("🔄 Atualizar Dados"):
     df_result = carregar_dados()
     st.dataframe(df_result, use_container_width=True)
+
