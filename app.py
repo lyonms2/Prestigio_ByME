@@ -115,15 +115,15 @@ filtro = st.text_input("🔍 Filtrar par (ex: BTC, ETH):", "").upper()
 
 # Botão para atualizar
 if st.button("🔄 Atualizar Dados"):
+    # Carrega os dados sempre que clicar em "Atualizar Dados"
     df_result = carregar_dados()
+
+    # Filtro de busca
+    filtro = st.text_input("🔍 Filtrar par (ex: BTC, ETH):", "").upper()
 
     # Aplicar filtro se houver
     if filtro:
         df_result = df_result[df_result["Par"].str.contains(filtro)]
 
+    # Mostrar tabela
     st.dataframe(df_result, use_container_width=True)
-    
-    
-
-
-
