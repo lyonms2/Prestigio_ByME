@@ -98,12 +98,17 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
     prev_k = stochrsi_k.iloc[-2]
     last_d = stochrsi_d.iloc[-1]
     prev_d = stochrsi_d.iloc[-2]
+
+    # DEBUG PRINT - Remova após testar
+    st.write(f"last_k={last_k:.3f}, prev_k={prev_k:.3f}, last_d={last_d:.3f}, prev_d={prev_d:.3f}")
+
     if (last_d > prev_d) and (last_d < last_k):
         return "D abaixo de K subindo", round(last_d, 3)
     elif (last_d < prev_d) and (last_d > last_k):
         return "D acima de K descendo", round(last_d, 3)
     else:
         return "Sem sinal claro", round(last_d, 3)
+
 
 def carregar_dados():
     resultados = []
@@ -170,3 +175,4 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
