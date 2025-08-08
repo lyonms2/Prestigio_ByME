@@ -83,38 +83,39 @@ def classificar_rsi(valor):
 def tradingview_link(symbol):
     return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
 
-def calculate_stochrsi(rsi, window=14, smooth_k=3, smooth_d=3):
-    rsi_min = rsi.rolling(window).min()
-    rsi_max = rsi.rolling(window).max()
-    stochrsi_k = (rsi - rsi_min) / (rsi_max - rsi_min)
-    stochrsi_k = stochrsi_k.rolling(smooth_k).mean()
-    stochrsi_d = stochrsi_k.rolling(smooth_d).mean()
+def calculate_stochrsi(close, rsi_period=14, stoch_period=14, smooth_k=3, smooth_d=3):
+    rsi = RSIIndicator(close=close, window=rsi_period).rsi()
+    min_rsi = rsi.rolling(window=stoch_period).min()
+    max_rsi = rsi.rolling(window=stoch_period).max()
+    stochrsi_k = ((rsi - min_rsi) / (max_rsi - min_rsi)).rolling(window=smooth_k).mean()
+    stochrsi_d = stochrsi_k.rolling(window=smooth_d).mean()
     return stochrsi_k, stochrsi_d
 
 def stochrsi_signal(stochrsi_k, stochrsi_d):
-    if len(stochrsi_k) < 2 or len(stochrsi_d) < 2:
-        return "Indefinido", None
     last_k = stochrsi_k.iloc[-1]
     prev_k = stochrsi_k.iloc[-2]
     last_d = stochrsi_d.iloc[-1]
     prev_d = stochrsi_d.iloc[-2]
 
-    # DEBUG PRINT - Remova após testar
-    st.write(f"last_k={last_k:.3f}, prev_k={prev_k:.3f}, last_d={last_d:.3f}, prev_d={prev_d:.3f}")
+    if pd.isna(last_k) or pd.isna(prev_k) or pd.isna(last_d) or pd.isna(prev_d):
+        return "Indefinido", None
 
-    if (last_d > prev_d) and (last_d < last_k):
-        return "D abaixo de K subindo", round(last_d, 3)
-    elif (last_d < prev_d) and (last_d > last_k):
-        return "D acima de K descendo", round(last_d, 3)
-    else:
-        return "Sem sinal claro", round(last_d, 3)
+    # D abaixo do K e subindo
+    if last_d < last_k and last_d > prev_d:
+        return "📈 Stoch RSI subindo (D < K)", last_d
 
+    # D acima do K e descendo
+    if last_d > last_k and last_d < prev_d:
+        return "📉 Stoch RSI descendo (D > K)", last_d
+
+    return "Indefinido", last_d
 
 def carregar_dados():
     resultados = []
     for symbol in symbols:
         try:
-            ohlcv = exchange.fetch_ohlcv(symbol, timeframe='30m', limit=20)
+            # Pegando 100 candles para cálculo adequado do Stoch RSI
+            ohlcv = exchange.fetch_ohlcv(symbol, timeframe='30m', limit=100)
             df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
             ha_df = get_heikin_ashi(df)
@@ -126,11 +127,11 @@ def carregar_dados():
             rsi_valor = round(rsi.iloc[-1], 2)
             rsi_status = f"{rsi_valor} - {classificar_rsi(rsi_valor)}"
 
-            stoch_k, stoch_d = calculate_stochrsi(rsi)
-            stoch_signal, stoch_d_val = stochrsi_signal(stoch_k, stoch_d)
-            stoch_text = f"{stoch_signal} ({stoch_d_val})"
+            stochrsi_k, stochrsi_d = calculate_stochrsi(ha_df['HA_Close'])
+            stoch_signal, stoch_value = stochrsi_signal(stochrsi_k, stochrsi_d)
+            stoch_str = f"{stoch_signal} ({stoch_value:.3f})" if stoch_value is not None else stoch_signal
 
-            resultados.append((symbol, tendencia, rsi_status, volume_alerta, stoch_text))
+            resultados.append((symbol, tendencia, rsi_status, volume_alerta, stoch_str))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", "", ""))
 
@@ -175,4 +176,3 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
-
