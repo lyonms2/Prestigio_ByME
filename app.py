@@ -102,19 +102,18 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
 
     # D abaixo do K e subindo
     if last_d < last_k and last_d > prev_d:
-        return "📈 Stoch RSI subindo (D < K)", last_d
+        return "📈 Stoch RSI subindo", last_d
 
     # D acima do K e descendo
     if last_d > last_k and last_d < prev_d:
-        return "📉 Stoch RSI descendo (D > K)", last_d
+        return "📉 Stoch RSI descendo", last_d
 
-    return "Indefinido", last_d
+    return "🚨 Atenção Cruzando", last_d
 
 def carregar_dados():
     resultados = []
     for symbol in symbols:
         try:
-            # Pegando 100 candles para cálculo adequado do Stoch RSI
             ohlcv = exchange.fetch_ohlcv(symbol, timeframe='30m', limit=100)
             df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
@@ -129,7 +128,7 @@ def carregar_dados():
 
             stochrsi_k, stochrsi_d = calculate_stochrsi(ha_df['HA_Close'])
             stoch_signal, stoch_value = stochrsi_signal(stochrsi_k, stochrsi_d)
-            stoch_str = f"{stoch_signal} ({stoch_value:.3f})" if stoch_value is not None else stoch_signal
+            stoch_str = f"{stoch_signal} ({int(stoch_value * 100)})" if stoch_value is not None else stoch_signal
 
             resultados.append((symbol, tendencia, rsi_status, volume_alerta, stoch_str))
         except Exception as e:
@@ -176,3 +175,4 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
