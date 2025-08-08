@@ -109,10 +109,27 @@ if st.button("🔄 Atualizar Dados"):
 if st.session_state.df_result is not None:
     st.dataframe(st.session_state.df_result, use_container_width=True)
 
-    filtro_link = st.text_input("🔍 Filtrar links por par (ex: BTC, ETH):", "").upper()
+    filtro_link = st.text_input("🔍 Pesquise um par para abrir gráfico TradingView", "").upper()
 
-    st.markdown("### 🔗 Abrir gráfico no TradingView")
-    for par in st.session_state.df_result["Par"]:
-        if filtro_link in par:
+    if filtro_link:
+        filtrados = [par for par in st.session_state.df_result["Par"] if filtro_link in par]
+
+        st.markdown("### 🔗 Gráficos TradingView")
+        for par in filtrados:
             url = tradingview_link(par)
-            st.markdown(f"- [📊 {par}]({url})", unsafe_allow_html=True)
+            # Botão estilizado via markdown + HTML para abrir nova aba
+            btn_html = f"""
+                <a href="{url}" target="_blank" style="
+                    text-decoration:none;
+                    color:white;
+                    background-color:#4CAF50;
+                    padding:8px 18px;
+                    border-radius:6px;
+                    display:inline-block;
+                    margin: 4px 6px;
+                    font-weight:bold;
+                    ">
+                    📊 {par}
+                </a>
+            """
+            st.markdown(btn_html, unsafe_allow_html=True)
