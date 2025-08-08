@@ -130,11 +130,11 @@ def carregar_dados():
             stoch_signal, stoch_value = stochrsi_signal(stochrsi_k, stochrsi_d)
             stoch_str = f"{stoch_signal} ({int(stoch_value * 100)})" if stoch_value is not None else stoch_signal
 
-            resultados.append((symbol, tendencia, rsi_status, volume_alerta, stoch_str))
+            resultados.append((symbol, tendencia, rsi_status, stoch_str, volume_alerta))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", "", ""))
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume", "Stoch RSI"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Stoch RSI", "Volume"])
 
 st.title("📊 Monitor de Criptomoedas")
 st.caption("🔄 Clique no botão abaixo para atualizar os dados")
@@ -175,4 +175,5 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
 
