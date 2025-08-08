@@ -5,7 +5,7 @@ from ta.momentum import RSIIndicator
 from datetime import datetime
 import pytz
 
-st.set_page_config(page_title="Análise Heikin-Ashi com Volume e RSI", layout="wide")
+st.set_page_config(page_title="Análise Heikin-Ashi com Volume, RSI e Stoch RSI", layout="wide")
 
 symbols = [
     "BTC-USDT", "ETH-USDT", "SOL-USDT", "XRP-USDT", "XMR-USDT", "ENA-USDT", "DOGE-USDT",
@@ -34,7 +34,6 @@ def get_heikin_ashi(df):
     return ha_df[['timestamp', 'HA_Open', 'HA_High', 'HA_Low', 'HA_Close']]
 
 def count_consecutive_candles(df):
-    # Conta quantas velas consecutivas têm mesma cor da última vela
     last_bull = df.iloc[-1]['HA_Close'] > df.iloc[-1]['HA_Open']
     count = 0
     for i in range(len(df)-1, -1, -1):
@@ -60,7 +59,6 @@ def analyze_ha_trend(df):
     else:
         return "🔍 Indefinido"
 
-
 def detect_volume_spike(df, N=2):
     volumes = df['volume'][:-1]
     last_volume = df['volume'].iloc[-1]
@@ -85,6 +83,28 @@ def classificar_rsi(valor):
 def tradingview_link(symbol):
     return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
 
+def calculate_stochrsi(rsi, window=14, smooth_k=3, smooth_d=3):
+    rsi_min = rsi.rolling(window).min()
+    rsi_max = rsi.rolling(window).max()
+    stochrsi_k = (rsi - rsi_min) / (rsi_max - rsi_min)
+    stochrsi_k = stochrsi_k.rolling(smooth_k).mean()
+    stochrsi_d = stochrsi_k.rolling(smooth_d).mean()
+    return stochrsi_k, stochrsi_d
+
+def stochrsi_signal(stochrsi_k, stochrsi_d):
+    if len(stochrsi_k) < 2 or len(stochrsi_d) < 2:
+        return "Indefinido", None
+    last_k = stochrsi_k.iloc[-1]
+    prev_k = stochrsi_k.iloc[-2]
+    last_d = stochrsi_d.iloc[-1]
+    prev_d = stochrsi_d.iloc[-2]
+    if (last_d > prev_d) and (last_d < last_k):
+        return "D abaixo de K subindo", round(last_d, 3)
+    elif (last_d < prev_d) and (last_d > last_k):
+        return "D acima de K descendo", round(last_d, 3)
+    else:
+        return "Sem sinal claro", round(last_d, 3)
+
 def carregar_dados():
     resultados = []
     for symbol in symbols:
@@ -101,11 +121,15 @@ def carregar_dados():
             rsi_valor = round(rsi.iloc[-1], 2)
             rsi_status = f"{rsi_valor} - {classificar_rsi(rsi_valor)}"
 
-            resultados.append((symbol, tendencia, rsi_status, volume_alerta))
-        except Exception as e:
-            resultados.append((symbol, f"Erro: {str(e)}", "", ""))
+            stoch_k, stoch_d = calculate_stochrsi(rsi)
+            stoch_signal, stoch_d_val = stochrsi_signal(stoch_k, stoch_d)
+            stoch_text = f"{stoch_signal} ({stoch_d_val})"
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume"])
+            resultados.append((symbol, tendencia, rsi_status, volume_alerta, stoch_text))
+        except Exception as e:
+            resultados.append((symbol, f"Erro: {str(e)}", "", "", ""))
+
+    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume", "Stoch RSI"])
 
 st.title("📊 Monitor de Criptomoedas")
 st.caption("🔄 Clique no botão abaixo para atualizar os dados")
@@ -131,7 +155,6 @@ if st.session_state.df_result is not None:
         st.markdown("### 🔗 Gráficos TradingView")
         for par in filtrados:
             url = tradingview_link(par)
-            # Botão estilizado via markdown + HTML para abrir nova aba
             btn_html = f"""
                 <a href="{url}" target="_blank" style="
                     text-decoration:none;
@@ -147,4 +170,3 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
-
