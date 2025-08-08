@@ -25,7 +25,7 @@ symbols = [
 # Inicializa KuCoin
 exchange = ccxt.kucoin()
 
-# Funções auxiliares (Heikin Ashi, análise, volume, RSI)
+# Funções auxiliares
 def get_heikin_ashi(df):
     ha_df = df.copy()
     ha_df['HA_Close'] = (df['open'] + df['high'] + df['low'] + df['close']) / 4
@@ -72,9 +72,6 @@ def classificar_rsi(valor):
     else:
         return "🚨 Sobrevendido"
 
-def tradingview_link(symbol):
-    return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
-
 def carregar_dados():
     resultados = []
     for symbol in symbols:
@@ -107,7 +104,11 @@ st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H
 
 if st.button("🔄 Atualizar Dados"):
     df_result = carregar_dados()
-    # Adiciona coluna com links Markdown clicáveis para o TradingView
-    df_result["Gráfico"] = df_result["Par"].apply(lambda p: f"[📊 Abrir](https://www.tradingview.com/chart/?symbol=KUCOIN:{p.replace('-', '')})")
-    # Exibe a tabela com links clicáveis usando Markdown
-    st.markdown(df_result.to_markdown(index=False), unsafe_allow_html=True)
+    par_selecionado = st.selectbox("🔍 Escolha o par para visualizar:", options=df_result["Par"].tolist())
+    df_filtrado = df_result[df_result["Par"] == par_selecionado]
+
+    url = f"https://www.tradingview.com/chart/?symbol=KUCOIN:{par_selecionado.replace('-', '')}"
+    link_md = f"[📊 Abrir gráfico no TradingView]({url})"
+
+    st.dataframe(df_filtrado, use_container_width=True)
+    st.markdown(link_md)
