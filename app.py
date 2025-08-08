@@ -102,11 +102,11 @@ def carregar_dados():
             link_grafico = f"[📊 Abrir]({tradingview_link(symbol)})"
 
             
-            resultados.append((symbol, tendencia, rsi_status, volume_alerta, link_grafico))
+            resultados.append((symbol, tendencia, rsi_status, volume_alerta))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", ""))
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume", "Gráfico"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência", "RSI", "Volume"])
 
 # Título e informações
 st.title("📊 Monitor de Criptomoedas")
@@ -120,6 +120,14 @@ st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H
 # Botão para atualizar
 if st.button("🔄 Atualizar Dados"):
     df_result = carregar_dados()
-    st.dataframe(df_result, use_container_width=True)
+    #st.dataframe(df_result, use_container_width=True)
+    # Exibir resultados com botão
+    for i, row in df_result.iterrows():
+        col1, col2, col3, col4, col5 = st.columns([2, 3, 3, 3, 2])
+        col1.write(row["Par"])
+        col2.write(row["Tendência"])
+        col3.write(row["RSI"])
+        col4.write(row["Volume"])
+        col5.link_button("📊 Ver Gráfico", tradingview_link(row["Par"]))
 
 
