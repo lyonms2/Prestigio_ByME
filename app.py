@@ -157,22 +157,30 @@ def carregar_dados(symbols):
 # ======================
 # Interface
 # ======================
+
 st.title("📊 Monitor de Criptomoedas")
-hora_brasil = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime('%d/%m/%Y %H:%M:%S')
-st.caption(f"⏱️ Última atualização: {hora_brasil}")
+
+def hora_atual_formatada():
+    return datetime.now(pytz.timezone("America/Sao_Paulo")).strftime('%d/%m/%Y %H:%M:%S')
 
 # Sessões
 if "df_principais" not in st.session_state:
     st.session_state.df_principais = None
 if "df_restantes" not in st.session_state:
     st.session_state.df_restantes = None
+if "hora_principais" not in st.session_state:
+    st.session_state.hora_principais = None
+if "hora_restantes" not in st.session_state:
+    st.session_state.hora_restantes = None
 
-# ... código anterior permanece igual até a parte da interface ...
-
-# Botão Principais
+# --- Moedas Principais ---
 st.subheader("🏆 Moedas Principais")
 if st.button("🔄 Atualizar Principais"):
     st.session_state.df_principais = carregar_dados(symbols_principais)
+    st.session_state.hora_principais = hora_atual_formatada()
+
+if st.session_state.hora_principais:
+    st.caption(f"⏱️ Última atualização: {st.session_state.hora_principais}")
 
 if st.session_state.df_principais is not None:
     filtro_principais = st.text_input("🔍 Pesquise um par nas Moedas Principais", key="filtro_principais").upper()
@@ -193,10 +201,10 @@ if st.session_state.df_principais is not None:
                         text-decoration:none;
                         color:white;
                         background-color:#002efb;
-                        padding:8px 18px;
-                        border-radius:6px;
+                        padding:4px 9px;
+                        border-radius:3px;
                         display:inline-block;
-                        margin: 4px 6px;
+                        margin: 2px 3px;
                         font-weight:bold;
                         ">
                         📊 {par}
@@ -207,12 +215,15 @@ if st.session_state.df_principais is not None:
     else:
         st.dataframe(st.session_state.df_principais, use_container_width=True)
 
-
-# Botão Restantes
+# --- Outras Moedas ---
 st.subheader("📋 Outras Moedas da KuCoin")
 if st.button("🔄 Atualizar Outras"):
     symbols_restantes = get_symbols_restantes()
     st.session_state.df_restantes = carregar_dados(symbols_restantes)
+    st.session_state.hora_restantes = hora_atual_formatada()
+
+if st.session_state.hora_restantes:
+    st.caption(f"⏱️ Última atualização: {st.session_state.hora_restantes}")
 
 if st.session_state.df_restantes is not None:
     filtro_restantes = st.text_input("🔍 Pesquise um par nas Outras Moedas", key="filtro_restantes").upper()
@@ -246,6 +257,3 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
-
-
-
