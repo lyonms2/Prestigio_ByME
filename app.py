@@ -195,7 +195,7 @@ if st.session_state.df_principais is not None:
         ]
         
         if not df_filtrado_principais.empty:
-            st.markdown("### 🔗 Gráficos TradingView - Moedas Principais")
+            
             cols = st.columns(min(len(df_filtrado_principais), 5))  # Máximo 5 colunas por linha
             
             for idx, par in enumerate(df_filtrado_principais["Par"]):
@@ -261,6 +261,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
