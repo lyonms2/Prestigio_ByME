@@ -92,6 +92,7 @@ def classificar_rsi(valor):
         return "🚨 Sobrevendido"
 
 def tradingview_link(symbol):
+    # Ajuste para transformar "BTC-USDT" em "BTCUSDT"
     return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
 
 def calculate_stochrsi(close, rsi_period=14, stoch_period=14, smooth_k=3, smooth_d=3):
@@ -185,8 +186,8 @@ if st.session_state.df_restantes is not None:
 todas_moedas = pd.DataFrame()
 if st.session_state.df_principais is not None:
     todas_moedas = pd.concat([todas_moedas, st.session_state.df_principais])
-if st.session_state.df_outras is not None:
-    todas_moedas = pd.concat([todas_moedas, st.session_state.df_outras])
+if st.session_state.df_restantes is not None:
+    todas_moedas = pd.concat([todas_moedas, st.session_state.df_restantes])
 
 # Remover duplicados só por segurança
 todas_moedas = todas_moedas.drop_duplicates(subset=["Par"]) if not todas_moedas.empty else pd.DataFrame(columns=["Par"])
