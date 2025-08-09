@@ -173,35 +173,35 @@ if st.button("🔄 Atualizar Principais"):
     st.session_state.df_principais = carregar_dados(symbols_principais)
 
 if st.session_state.df_principais is not None:
-    # Pesquisa para principais
     filtro_principais = st.text_input("🔍 Pesquise um par nas Moedas Principais", key="filtro_principais").upper()
-    df_filtrado_principais = st.session_state.df_principais
-
+    
     if filtro_principais:
         df_filtrado_principais = st.session_state.df_principais[st.session_state.df_principais["Par"].str.contains(filtro_principais)]
+        
+        if not df_filtrado_principais.empty:
+            st.markdown("### 🔗 Gráficos TradingView - Moedas Principais")
+            for par in df_filtrado_principais["Par"]:
+                url = tradingview_link(par)
+                btn_html = f"""
+                    <a href="{url}" target="_blank" style="
+                        text-decoration:none;
+                        color:white;
+                        background-color:#4CAF50;
+                        padding:8px 18px;
+                        border-radius:6px;
+                        display:inline-block;
+                        margin: 4px 6px;
+                        font-weight:bold;
+                        ">
+                        📊 {par}
+                    </a>
+                """
+                st.markdown(btn_html, unsafe_allow_html=True)
+        st.dataframe(df_filtrado_principais, use_container_width=True)
+    else:
+        # Sem filtro: mostra toda a tabela, sem links e título
+        st.dataframe(st.session_state.df_principais, use_container_width=True)
 
-    st.dataframe(df_filtrado_principais, use_container_width=True)
-
-    # Links TradingView para moedas principais filtradas
-    if not df_filtrado_principais.empty:
-        st.markdown("### 🔗 Gráficos TradingView - Moedas Principais")
-        for par in df_filtrado_principais["Par"]:
-            url = tradingview_link(par)
-            btn_html = f"""
-                <a href="{url}" target="_blank" style="
-                    text-decoration:none;
-                    color:white;
-                    background-color:#4CAF50;
-                    padding:8px 18px;
-                    border-radius:6px;
-                    display:inline-block;
-                    margin: 4px 6px;
-                    font-weight:bold;
-                    ">
-                    📊 {par}
-                </a>
-            """
-            st.markdown(btn_html, unsafe_allow_html=True)
 
 # Botão Restantes
 st.subheader("📋 Outras Moedas da KuCoin")
@@ -210,32 +210,31 @@ if st.button("🔄 Atualizar Outras"):
     st.session_state.df_restantes = carregar_dados(symbols_restantes)
 
 if st.session_state.df_restantes is not None:
-    # Pesquisa para restantes
     filtro_restantes = st.text_input("🔍 Pesquise um par nas Outras Moedas", key="filtro_restantes").upper()
-    df_filtrado_restantes = st.session_state.df_restantes
-
+    
     if filtro_restantes:
         df_filtrado_restantes = st.session_state.df_restantes[st.session_state.df_restantes["Par"].str.contains(filtro_restantes)]
-
-    st.dataframe(df_filtrado_restantes, use_container_width=True)
-
-    # Links TradingView para moedas restantes filtradas
-    if not df_filtrado_restantes.empty:
-        st.markdown("### 🔗 Gráficos TradingView - Outras Moedas")
-        for par in df_filtrado_restantes["Par"]:
-            url = tradingview_link(par)
-            btn_html = f"""
-                <a href="{url}" target="_blank" style="
-                    text-decoration:none;
-                    color:white;
-                    background-color:#4CAF50;
-                    padding:8px 18px;
-                    border-radius:6px;
-                    display:inline-block;
-                    margin: 4px 6px;
-                    font-weight:bold;
-                    ">
-                    📊 {par}
-                </a>
-            """
-            st.markdown(btn_html, unsafe_allow_html=True)
+        
+        if not df_filtrado_restantes.empty:
+            st.markdown("### 🔗 Gráficos TradingView - Outras Moedas")
+            for par in df_filtrado_restantes["Par"]:
+                url = tradingview_link(par)
+                btn_html = f"""
+                    <a href="{url}" target="_blank" style="
+                        text-decoration:none;
+                        color:white;
+                        background-color:#4CAF50;
+                        padding:8px 18px;
+                        border-radius:6px;
+                        display:inline-block;
+                        margin: 4px 6px;
+                        font-weight:bold;
+                        ">
+                        📊 {par}
+                    </a>
+                """
+                st.markdown(btn_html, unsafe_allow_html=True)
+        st.dataframe(df_filtrado_restantes, use_container_width=True)
+    else:
+        # Sem filtro: mostra toda a tabela, sem links e título
+        st.dataframe(st.session_state.df_restantes, use_container_width=True)
