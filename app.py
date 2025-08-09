@@ -177,7 +177,7 @@ if "hora_restantes" not in st.session_state:
 
 # --- Moedas Principais ---
 st.subheader("🏆 Moedas Principais")
-if st.button("🔄 Atualizar Dados"):
+if st.button("🔄 Atualizar Dados", key="btn_atualizar_principais"):
     st.session_state.df_principais = carregar_dados(symbols_principais)
     st.session_state.hora_principais = hora_atual_formatada()
 
@@ -219,7 +219,7 @@ if st.session_state.df_principais is not None:
 
 # --- Outras Moedas ---
 st.subheader("📋 Outras Moedas")
-if st.button("🔄 Atualizar Dados"):
+if st.button("🔄 Atualizar Dados", key="btn_atualizar_restantes"):
     symbols_restantes = get_symbols_restantes()
     st.session_state.df_restantes = carregar_dados(symbols_restantes)
     st.session_state.hora_restantes = hora_atual_formatada()
@@ -259,4 +259,5 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
