@@ -14,6 +14,11 @@ def carregar_usuarios_ativos():
     ativos = df[df['Status_Plano'].str.strip().str.upper() == "ACTIVE"]
     return ativos['Email'].str.strip().str.lower().dropna().tolist()
 
+# TESTE: Mostrar emails ativos no app
+usuarios_ativos = carregar_usuarios_ativos()
+st.write("Lista de emails ativos:")
+st.write(usuarios_ativos)    
+
 # Verifica se o usuário está logado
 if not st.session_state.logado:
     st.title("Acesso restrito - Digite seu e-mail cadastrado")
@@ -29,7 +34,7 @@ if not st.session_state.logado:
             st.error("❌ E-mail não autorizado ou assinatura inativa.")
     # NÃO chame st.stop() aqui para evitar problemas no rerun
 else:
-    # Conteúdo protegido aqui
+   
 
 # Se estiver logado, exibe o conteúdo do aplicativo
 
@@ -289,6 +294,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
