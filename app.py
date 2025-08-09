@@ -192,7 +192,7 @@ if st.session_state.df_principais is not None:
                     <a href="{url}" target="_blank" style="
                         text-decoration:none;
                         color:white;
-                        background-color:#4CAF50;
+                        background-color:#002efb;
                         padding:8px 18px;
                         border-radius:6px;
                         display:inline-block;
@@ -232,11 +232,11 @@ if st.session_state.df_restantes is not None:
                     <a href="{url}" target="_blank" style="
                         text-decoration:none;
                         color:white;
-                        background-color:#4CAF50;
-                        padding:8px 18px;
-                        border-radius:6px;
+                        background-color:#002efb;
+                        padding:4px 9px;
+                        border-radius:3px;
                         display:inline-block;
-                        margin: 4px 6px;
+                        margin: 2px 3px;
                         font-weight:bold;
                         ">
                         📊 {par}
@@ -246,5 +246,6 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
