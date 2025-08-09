@@ -129,7 +129,7 @@ def carregar_dados():
 
             stochrsi_k_1h, stochrsi_d_1h = calculate_stochrsi(ha_df_1h['HA_Close'])
             stoch_signal_1h, stoch_value_1h = stochrsi_signal(stochrsi_k_1h, stochrsi_d_1h)
-            stoch_str_1h = f"{stoch_signal_1h} ({int(stoch_value_1h * 100})" if stoch_value_1h is not None else stoch_signal_1h
+            stoch_str_1h = f"{stoch_signal_1h} ({int(stoch_value_1h * 100)})" if stoch_value_1h is not None else stoch_signal_1h
             
             # ====== Dados 4h ======
             ohlcv_4h = exchange.fetch_ohlcv(symbol, timeframe='4h', limit=100)
@@ -147,7 +147,7 @@ def carregar_dados():
 
             stochrsi_k_4h, stochrsi_d_4h = calculate_stochrsi(ha_df_4h['HA_Close'])
             stoch_signal_4h, stoch_value_4h = stochrsi_signal(stochrsi_k_4h, stochrsi_d_4h)
-            stoch_str_4h = f"{stoch_signal_4h} ({int(stoch_value_4h * 100})" if stoch_value_4h is not None else stoch_signal_4h
+            stoch_str_4h = f"{stoch_signal_4h} ({int(stoch_value_4h * 100)})" if stoch_value_4h is not None else stoch_signal_4h
 
             resultados.append((symbol, tendencia_1h, tendencia_4h, rsi_status_1h, rsi_status_4h,
                                stoch_str_1h, stoch_str_4h, volume_alerta, volume_alerta_4h))
@@ -194,6 +194,7 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
 
 
 
