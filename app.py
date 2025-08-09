@@ -5,6 +5,32 @@ from ta.momentum import RSIIndicator
 from datetime import datetime
 import pytz
 
+# ---------- Config do CSV da planilha com usuários ativos ----------
+URL_PLANILHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcElw5weHbiGxzET7fbS8F3PfjBEfBbTRqH-FK4hOxt7ekTXRcrITxGMB6pMGjvM95b5fmnYiZAj46/pub?gid=0&single=true&output=csv"
+
+def carregar_usuarios_ativos():
+    df = pd.read_csv(URL_PLANILHA)
+    ativos = df[df['status'].str.lower() == "ativo"]
+    return ativos['email'].str.lower().tolist()
+
+# ---------- Controle de login simples ----------
+if "logado" not in st.session_state:
+    st.session_state.logado = False
+
+if not st.session_state.logado:
+    st.title("🔒 Acesso Restrito")
+    email = st.text_input("Digite seu e-mail cadastrado")
+    if st.button("Entrar"):
+        usuarios_ativos = carregar_usuarios_ativos()
+        if email.lower() in usuarios_ativos:
+            st.session_state.logado = True
+            st.experimental_rerun()
+        else:
+            st.error("❌ E-mail não autorizado ou assinatura inativa.")
+    st.stop()  # Para aqui se não estiver logado
+
+# ----------------- SE ESTIVER LOGADO, RODA O APP NORMAL -----------------
+
 st.set_page_config(page_title="Monitor de Criptomoedas", layout="wide")
 
 # ======================
@@ -261,6 +287,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
