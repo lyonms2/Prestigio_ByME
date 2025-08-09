@@ -183,8 +183,7 @@ if st.session_state.df_restantes is not None:
 
 # Busca para abrir TradingView (fora dos blocos dos botões)
 filtro_link = st.text_input("🔍 Pesquise um par para abrir gráfico TradingView", "").upper()
-
-    if filtro_link:
+if filtro_link:
         filtrados = [par for par in st.session_state.df_result["Par"] if filtro_link in par]
 
         st.markdown("### 🔗 Gráficos TradingView")
@@ -205,3 +204,6 @@ filtro_link = st.text_input("🔍 Pesquise um par para abrir gráfico TradingVie
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
+    
+    
