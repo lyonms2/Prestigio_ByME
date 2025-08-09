@@ -65,7 +65,7 @@ def detect_volume_spike(df, N=2):
     mean = volumes.mean()
     std = volumes.std()
     if last_volume > mean + N * std:
-        return "🚨"
+        return "🚨 Atenção"
     return ""
 
 def classificar_rsi(valor):
@@ -169,18 +169,7 @@ if st.button("🔄 Atualizar Dados"):
     st.session_state.df_result = carregar_dados()
 
 if st.session_state.df_result is not None:
-    df_display = st.session_state.df_result.style.set_properties(**{
-        'text-align': 'center',
-        'vertical-align': 'middle'
-    })
-
-    # Para garantir que o cabeçalho também fique centralizado
-    df_display = df_display.set_table_styles([
-        {'selector': 'th', 'props': [('text-align', 'center')]}
-    ])
-
-    st.dataframe(df_display, use_container_width=True)
-
+    st.dataframe(st.session_state.df_result, use_container_width=True)
 
     filtro_link = st.text_input("🔍 Pesquise um par para abrir gráfico TradingView", "").upper()
 
@@ -205,12 +194,3 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
-
-
-
-
-
-
-
-
-
