@@ -123,7 +123,7 @@ def carregar_dados():
             tendencia_1h = analyze_ha_trend(ha_df_1h)
             volume_alerta = detect_volume_spike(df_1h)
 
-            rsi = RSIIndicator(close=ha_df_1h["HA_Close"], window=14).rsi()
+            rsi_1h = RSIIndicator(close=ha_df_1h["HA_Close"], window=14).rsi()
             rsi_valor_1h = round(rsi_1h.iloc[-1], 2)
             rsi_status_1h = f"{rsi_valor_1h} - {classificar_rsi(rsi_valor_1h)}"
 
@@ -141,11 +141,11 @@ def carregar_dados():
             volume_alerta_4h = detect_volume_spike(df_4h)
 
             rsi_4h = RSIIndicator(close=ha_df_4h["HA_Close"], window=14).rsi()
-            rsi_valor_4h = round(rsi.iloc[-1], 2)
+            rsi_valor_4h = round(rsi_4h.iloc[-1], 2)
             rsi_status_4h = f"{rsi_valor_4h} - {classificar_rsi(rsi_valor_4h)}"
 
 
-           stochrsi_k_4h, stochrsi_d_4h = calculate_stochrsi(ha_df_4h['HA_Close'])
+            stochrsi_k_4h, stochrsi_d_4h = calculate_stochrsi(ha_df_4h['HA_Close'])
             stoch_signal_4h, stoch_value_4h = stochrsi_signal(stochrsi_k_4h, stochrsi_d_4h)
             stoch_str_4h = f"{stoch_signal_4h} ({int(stoch_value_4h)})" if stoch_value_4h is not None else stoch_signal_4h
 
@@ -194,6 +194,7 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
 
 
 
