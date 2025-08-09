@@ -7,7 +7,10 @@ import pytz
 
 st.set_page_config(page_title="Análise Heikin-Ashi com Volume, RSI e Stoch RSI", layout="wide")
 
-symbols = [
+# ======================
+# Lista de moedas principais
+# ======================
+symbols_principais = [
     "BTC-USDT", "ETH-USDT", "SOL-USDT", "XRP-USDT", "XMR-USDT", "ENA-USDT", "DOGE-USDT",
     "FARTCOIN-USDT", "ADA-USDT", "LTC-USDT", "SUI-USDT", "SEI-USDT", "PEPE-USDT", "LINK-USDT",
     "HYPE-USDT", "TON-USDT", "UNI-USDT", "PENGU-USDT", "AVAX-USDT", "TRX-USDT", "HBAR-USDT",
@@ -21,6 +24,14 @@ symbols = [
 ]
 
 exchange = ccxt.kucoin()
+
+# ======================
+# Funções auxiliares
+# ======================
+def get_symbols_restantes():
+    all_markets = exchange.load_markets()
+    all_usdt_pairs = [m.replace("/", "-") for m in all_markets if m.endswith("/USDT")]
+    return sorted([s for s in all_usdt_pairs if s not in symbols_principais])
 
 def get_heikin_ashi(df):
     ha_df = df.copy()
@@ -96,25 +107,18 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
     prev_k = stochrsi_k.iloc[-2]
     last_d = stochrsi_d.iloc[-1]
     prev_d = stochrsi_d.iloc[-2]
-
     if pd.isna(last_k) or pd.isna(prev_k) or pd.isna(last_d) or pd.isna(prev_d):
         return "Indefinido", None
-
-    # D abaixo do K e subindo
     if last_d < last_k and last_d > prev_d:
         return "📈 Subindo", last_d
-
-    # D acima do K e descendo
     if last_d > last_k and last_d < prev_d:
         return "📉 Descendo", last_d
-
     return "🚨 Cruzando", last_d
 
-def carregar_dados():
+def carregar_dados(symbols):
     resultados = []
     for symbol in symbols:
         try:
-            # ====== Dados 1h ======
             ohlcv_1h = exchange.fetch_ohlcv(symbol, timeframe='1h', limit=100)
             df_1h = pd.DataFrame(ohlcv_1h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df_1h['timestamp'] = pd.to_datetime(df_1h['timestamp'], unit='ms')
@@ -122,16 +126,13 @@ def carregar_dados():
 
             tendencia_1h = analyze_ha_trend(ha_df_1h)
             volume_alerta = detect_volume_spike(df_1h)
-
             rsi_1h = RSIIndicator(close=ha_df_1h["HA_Close"], window=14).rsi()
             rsi_valor_1h = round(rsi_1h.iloc[-1], 2)
             rsi_status_1h = f"{rsi_valor_1h} - {classificar_rsi(rsi_valor_1h)}"
-
             stochrsi_k_1h, stochrsi_d_1h = calculate_stochrsi(ha_df_1h['HA_Close'])
             stoch_signal_1h, stoch_value_1h = stochrsi_signal(stochrsi_k_1h, stochrsi_d_1h)
-            stoch_str_1h = f"{stoch_signal_1h} ({int(stoch_value_1h * 100)})" if stoch_value_1h is not None else stoch_signal_1h
-            
-            # ====== Dados 4h ======
+            stoch_str_1h = f"{stoch_signal_1h} ({round(stoch_value_1h, 2)})" if stoch_value_1h is not None else stoch_signal_1h
+
             ohlcv_4h = exchange.fetch_ohlcv(symbol, timeframe='4h', limit=100)
             df_4h = pd.DataFrame(ohlcv_4h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df_4h['timestamp'] = pd.to_datetime(df_4h['timestamp'], unit='ms')
@@ -139,58 +140,43 @@ def carregar_dados():
 
             tendencia_4h = analyze_ha_trend(ha_df_4h)
             volume_alerta_4h = detect_volume_spike(df_4h)
-
             rsi_4h = RSIIndicator(close=ha_df_4h["HA_Close"], window=14).rsi()
             rsi_valor_4h = round(rsi_4h.iloc[-1], 2)
             rsi_status_4h = f"{rsi_valor_4h} - {classificar_rsi(rsi_valor_4h)}"
-
-
             stochrsi_k_4h, stochrsi_d_4h = calculate_stochrsi(ha_df_4h['HA_Close'])
             stoch_signal_4h, stoch_value_4h = stochrsi_signal(stochrsi_k_4h, stochrsi_d_4h)
-            stoch_str_4h = f"{stoch_signal_4h} ({int(stoch_value_4h * 100)})" if stoch_value_4h is not None else stoch_signal_4h
+            stoch_str_4h = f"{stoch_signal_4h} ({round(stoch_value_4h, 2)})" if stoch_value_4h is not None else stoch_signal_4h
 
             resultados.append((symbol, tendencia_1h, tendencia_4h, rsi_status_1h, rsi_status_4h,
                                stoch_str_1h, stoch_str_4h, volume_alerta, volume_alerta_4h))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", ""))
-
     return pd.DataFrame(resultados, columns=["Par", "Tendência 1h", "Tendência 4h", "RSI 1h", "RSI 4h", "Stoch RSI 1h", "Stoch RSI 4h", "Vol 1h", "Vol 4h"])
+
+# ======================
+# Interface
+# ======================
 st.title("📊 Monitor de Criptomoedas")
-st.caption("🔄 Clique no botão abaixo para atualizar os dados")
+hora_brasil = datetime.now(pytz.timezone("America/Sao_Paulo")).strftime('%d/%m/%Y %H:%M:%S')
+st.caption(f"⏱️ Última atualização: {hora_brasil}")
 
-fuso_brasil = pytz.timezone("America/Sao_Paulo")
-hora_brasil = datetime.now(fuso_brasil)
-st.markdown(f"⏱️ Última atualização: **{hora_brasil.strftime('%d/%m/%Y %H:%M:%S')} (Horário de Brasília)**")
+# Sessões
+if "df_principais" not in st.session_state:
+    st.session_state.df_principais = None
+if "df_restantes" not in st.session_state:
+    st.session_state.df_restantes = None
 
-if "df_result" not in st.session_state:
-    st.session_state.df_result = None
+# Botão Principais
+st.subheader("🏆 Moedas Principais")
+if st.button("🔄 Atualizar Principais"):
+    st.session_state.df_principais = carregar_dados(symbols_principais)
+if st.session_state.df_principais is not None:
+    st.dataframe(st.session_state.df_principais, use_container_width=True)
 
-if st.button("🔄 Atualizar Dados"):
-    st.session_state.df_result = carregar_dados()
-
-if st.session_state.df_result is not None:
-    st.dataframe(st.session_state.df_result, use_container_width=True)
-
-    filtro_link = st.text_input("🔍 Pesquise um par para abrir gráfico TradingView", "").upper()
-
-    if filtro_link:
-        filtrados = [par for par in st.session_state.df_result["Par"] if filtro_link in par]
-
-        st.markdown("### 🔗 Gráficos TradingView")
-        for par in filtrados:
-            url = tradingview_link(par)
-            btn_html = f"""
-                <a href="{url}" target="_blank" style="
-                    text-decoration:none;
-                    color:white;
-                    background-color:#4CAF50;
-                    padding:8px 18px;
-                    border-radius:6px;
-                    display:inline-block;
-                    margin: 4px 6px;
-                    font-weight:bold;
-                    ">
-                    📊 {par}
-                </a>
-            """
-            st.markdown(btn_html, unsafe_allow_html=True)
+# Botão Restantes
+st.subheader("📋 Outras Moedas da KuCoin")
+if st.button("🔄 Atualizar Outras"):
+    symbols_restantes = get_symbols_restantes()
+    st.session_state.df_restantes = carregar_dados(symbols_restantes)
+if st.session_state.df_restantes is not None:
+    st.dataframe(st.session_state.df_restantes, use_container_width=True)
