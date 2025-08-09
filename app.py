@@ -27,7 +27,7 @@ exchange = ccxt.kucoin()
 def get_symbols_restantes():
     all_markets = exchange.load_markets()
     all_usdt_pairs = [m.replace("/", "-") for m in all_markets if m.endswith("/USDT")]
-    excecoes = {"WAXP-USDT", "VAIOT-USDT", "BSV-USDT", "BIFIF-USDT", "ALT-USDT", "VRADOWN-USDT"}  # moedas que não quer mostrar em "outras"
+    excecoes = {"WAXP-USDT", "VAIOT-USDT", "BSV-USDT", "BIFIF-USDT", "ALT-USDT", "VRADOWN-USDT", "USDP-USDT"}  # moedas que não quer mostrar em "outras"
     return sorted([s for s in all_usdt_pairs if s not in symbols_principais and s not in excecoes])
 
 
@@ -238,7 +238,7 @@ if st.session_state.df_restantes is not None:
         ]
         
         if not df_filtrado_restantes.empty:
-            st.markdown("### 🔗 Gráficos TradingView - Outras Moedas")
+            
             cols = st.columns(min(len(df_filtrado_restantes), 5))  # Máximo 5 colunas por linha
             
             for idx, par in enumerate(df_filtrado_restantes["Par"]):
@@ -261,6 +261,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
