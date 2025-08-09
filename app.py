@@ -180,3 +180,14 @@ if st.button("🔄 Atualizar Outras"):
     st.session_state.df_restantes = carregar_dados(symbols_restantes)
 if st.session_state.df_restantes is not None:
     st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
+# Busca para abrir TradingView (fora dos blocos dos botões)
+st.markdown("---")
+st.markdown("### 🔍 Abrir gráfico no TradingView")
+par_pesquisa = st.text_input("Digite o par para abrir gráfico (ex: BTC-USDT)").upper()
+if par_pesquisa:
+    url = tradingview_link(par_pesquisa)
+    if st.button("Abrir TradingView"):
+        st.markdown(f"[Abrir {par_pesquisa} no TradingView]({url})", unsafe_allow_html=True)
+
+
