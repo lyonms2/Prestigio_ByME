@@ -32,7 +32,7 @@ else:
     # Conteúdo protegido aqui
 
 # Se estiver logado, exibe o conteúdo do aplicativo
-#st.title("📊 Monitor de Criptomoedasss")
+
 st.set_page_config(page_title="Monitor de Criptomoedas", layout="wide")
 
 # ======================
@@ -289,6 +289,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
