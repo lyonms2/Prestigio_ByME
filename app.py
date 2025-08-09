@@ -15,24 +15,25 @@ def carregar_usuarios_ativos():
     return ativos['Email'].str.strip().str.lower().dropna().tolist()
 
 # Verifica se o usuário está logado
-if "logado" not in st.session_state:
-    st.session_state.logado = False
-
 if not st.session_state.logado:
     st.title("Acesso restrito - Digite seu e-mail cadastrado")
     email = st.text_input("Email", label_visibility="collapsed")
-    if st.button("Entrar"):
+    entrar = st.button("Entrar")
+
+    if entrar:
         usuarios_ativos = carregar_usuarios_ativos()
         if email and email.strip().lower() in usuarios_ativos:
             st.session_state.logado = True
             st.experimental_rerun()
         else:
             st.error("❌ E-mail não autorizado ou assinatura inativa.")
-    st.stop()
+    # NÃO chame st.stop() aqui para evitar problemas no rerun
+else:
+    # Conteúdo protegido aqui
 
 # Se estiver logado, exibe o conteúdo do aplicativo
-st.title("📊 Monitor de Criptomoedasss")
-#st.set_page_config(page_title="Monitor de Criptomoedas", layout="wide")
+#st.title("📊 Monitor de Criptomoedasss")
+st.set_page_config(page_title="Monitor de Criptomoedas", layout="wide")
 
 # ======================
 # Lista de moedas principais
@@ -288,6 +289,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
