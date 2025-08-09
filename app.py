@@ -14,10 +14,6 @@ def carregar_usuarios_ativos():
     ativos = df[df['Status_Plano'].str.strip().str.upper() == "ACTIVE"]
     return ativos['Email'].str.strip().str.lower().dropna().tolist()
 
-# TESTE: Mostrar emails ativos no app
-usuarios_ativos = carregar_usuarios_ativos()
-st.write("Lista de emails ativos:")
-st.write(usuarios_ativos)    
 
 # Verifica se o usuário está logado
 if not st.session_state.logado:
@@ -32,8 +28,13 @@ if not st.session_state.logado:
             st.experimental_rerun()
         else:
             st.error("❌ E-mail não autorizado ou assinatura inativa.")
-    # NÃO chame st.stop() aqui para evitar problemas no rerun
 else:
+    st.set_page_config(page_title="Monitor de Criptomoedas", layout="wide")
+
+    # Teste: mostrar emails ativos no app para verificar
+    usuarios_ativos = carregar_usuarios_ativos()
+    st.write("Lista de emails ativos:")
+    st.write(usuarios_ativos)
    
 
 # Se estiver logado, exibe o conteúdo do aplicativo
@@ -294,6 +295,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
