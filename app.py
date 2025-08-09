@@ -49,13 +49,13 @@ def analyze_ha_trend(df):
     last = df.iloc[-1]
     prev = df.iloc[-2]
     if prev['HA_Close'] < prev['HA_Open'] and last['HA_Close'] > last['HA_Open']:
-        return "🔼 Reversão p/ Alta"
+        return "🔼 Reversão Alta"
     elif prev['HA_Close'] > prev['HA_Open'] and last['HA_Close'] < last['HA_Open']:
-        return "🔽 Reversão p/ Baixa"
+        return "🔽 Reversão Baixa"
     elif last_bull and prev['HA_Close'] > prev['HA_Open']:
-        return f"🟢 Continuação de Alta ({count} velas)"
+        return f"🟢 Alta ({count} velas)"
     elif not last_bull and prev['HA_Close'] < prev['HA_Open']:
-        return f"🔴 Continuação de Baixa ({count} velas)"
+        return f"🔴 Baixa ({count} velas)"
     else:
         return "🔍 Indefinido"
 
@@ -65,7 +65,7 @@ def detect_volume_spike(df, N=2):
     mean = volumes.mean()
     std = volumes.std()
     if last_volume > mean + N * std:
-        return "🚨 Pico de Volume"
+        return "🚨"
     return ""
 
 def classificar_rsi(valor):
@@ -102,13 +102,13 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
 
     # D abaixo do K e subindo
     if last_d < last_k and last_d > prev_d:
-        return "📈 Stoch RSI subindo", last_d
+        return "📈 Subindo", last_d
 
     # D acima do K e descendo
     if last_d > last_k and last_d < prev_d:
-        return "📉 Stoch RSI descendo", last_d
+        return "📉 Descendo", last_d
 
-    return "🚨 Atenção Cruzando", last_d
+    return "🚨 Cruzando", last_d
 
 def carregar_dados():
     resultados = []
@@ -154,7 +154,7 @@ def carregar_dados():
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", ""))
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência 1h", "Tendência 4h", "RSI 1h", "RSI 4h", "Stoch RSI 1h", "Stoch RSI 4h", "Volume 1h", "Volume 4h"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência 1h", "Tendência 4h", "RSI 1h", "RSI 4h", "Stoch RSI 1h", "Stoch RSI 4h", "Vol 1h", "Vol 4h"])
 st.title("📊 Monitor de Criptomoedas")
 st.caption("🔄 Clique no botão abaixo para atualizar os dados")
 
@@ -194,6 +194,7 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
 
 
 
