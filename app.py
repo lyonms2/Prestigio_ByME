@@ -124,13 +124,13 @@ def carregar_dados():
             volume_alerta = detect_volume_spike(df_1h)
 
             rsi = RSIIndicator(close=ha_df_1h["HA_Close"], window=14).rsi()
-            rsi_valor = round(rsi.iloc[-1], 2)
-            rsi_status = f"{rsi_valor} - {classificar_rsi(rsi_valor)}"
+            rsi_valor_1h = round(rsi_1h.iloc[-1], 2)
+            rsi_status_1h = f"{rsi_valor_1h} - {classificar_rsi(rsi_valor_1h)}"
 
-            stochrsi_k, stochrsi_d = calculate_stochrsi(ha_df_1h['HA_Close'])
-            stoch_signal, stoch_value = stochrsi_signal(stochrsi_k, stochrsi_d)
-            stoch_str = f"{stoch_signal} ({int(stoch_value * 100)})" if stoch_value is not None else stoch_signal
-
+            stochrsi_k_1h, stochrsi_d_1h = calculate_stochrsi(ha_df_1h['HA_Close'])
+            stoch_signal_1h, stoch_value_1h = stochrsi_signal(stochrsi_k_1h, stochrsi_d_1h)
+            stoch_str_1h = f"{stoch_signal_1h} ({int(stoch_value_1h)})" if stoch_value_1h is not None else stoch_signal_1h
+            
             # ====== Dados 4h ======
             ohlcv_4h = exchange.fetch_ohlcv(symbol, timeframe='4h', limit=100)
             df_4h = pd.DataFrame(ohlcv_4h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -138,13 +138,23 @@ def carregar_dados():
             ha_df_4h = get_heikin_ashi(df_4h)
 
             tendencia_4h = analyze_ha_trend(ha_df_4h)
+            volume_alerta_4h = detect_volume_spike(df_4h)
 
-            resultados.append((symbol, tendencia_1h, tendencia_4h, rsi_status, stoch_str, volume_alerta))
+            rsi_4h = RSIIndicator(close=ha_df_4h["HA_Close"], window=14).rsi()
+            rsi_valor_4h = round(rsi.iloc[-1], 2)
+            rsi_status_4h = f"{rsi_valor_4h} - {classificar_rsi(rsi_valor_4h)}"
 
+
+           stochrsi_k_4h, stochrsi_d_4h = calculate_stochrsi(ha_df_4h['HA_Close'])
+            stoch_signal_4h, stoch_value_4h = stochrsi_signal(stochrsi_k_4h, stochrsi_d_4h)
+            stoch_str_4h = f"{stoch_signal_4h} ({int(stoch_value_4h)})" if stoch_value_4h is not None else stoch_signal_4h
+
+            resultados.append((symbol, tendencia_1h, tendencia_4h, rsi_status_1h, rsi_status_4h,
+                               stoch_str_1h, stoch_str_4h, volume_alerta, volume_alerta_4h))
         except Exception as e:
-            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", ""))
+            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", ""))
 
-    return pd.DataFrame(resultados, columns=["Par", "Tendência 1h", "Tendência 4h", "RSI", "Stoch RSI", "Volume"])
+    return pd.DataFrame(resultados, columns=["Par", "Tendência 1h", "Tendência 4h", "RSI 1h", "RSI 4h", "Stoch RSI 1h", "Stoch RSI 4h", "Volume 1h", "Volume 4h"])
 st.title("📊 Monitor de Criptomoedas")
 st.caption("🔄 Clique no botão abaixo para atualizar os dados")
 
@@ -184,6 +194,7 @@ if st.session_state.df_result is not None:
                 </a>
             """
             st.markdown(btn_html, unsafe_allow_html=True)
+
 
 
 
