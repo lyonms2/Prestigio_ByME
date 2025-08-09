@@ -11,16 +11,13 @@ st.set_page_config(page_title="Monitor de Criptomoedas", layout="wide")
 # Lista de moedas principais
 # ======================
 symbols_principais = [
-    "BTC-USDT", "ETH-USDT", "SOL-USDT", "XRP-USDT", "XMR-USDT", "ENA-USDT", "DOGE-USDT",
-    "FARTCOIN-USDT", "ADA-USDT", "LTC-USDT", "SUI-USDT", "SEI-USDT", "PEPE-USDT", "LINK-USDT",
-    "HYPE-USDT", "TON-USDT", "UNI-USDT", "PENGU-USDT", "AVAX-USDT", "TRX-USDT", "HBAR-USDT",
-    "NEAR-USDT", "NODE-USDT", "ONDO-USDT", "SHIB-USDT", "TAO-USDT", "XLM-USDT", "TRUMP-USDT",
-    "DOT-USDT", "FET-USDT", "INJ-USDT", "WIF-USDT", "TIA-USDT", "BNB-USDT", "ILV-USDT",
-    "ZBCN-USDT", "IKA-USDT", "SUP-USDT", "GAIA-USDT", "BONK-USDT", "XU3O8-USDT", "NOBODY-USDT",
-    "AGT-USDT", "URANUS-USDT", "A47-USDT", "SNAKES-USDT", "NEWT-USDT", "CRV-USDT", "TROLL-USDT",
-    "VRA-USDT", "XPR-USDT", "USELESS-USDT", "THINK-USDT", "CFX-USDT", "SPX-USDT", "BCH-USDT",
-    "ARB-USDT", "KAS-USDT", "S-USDT", "AAVE-USDT", "ES-USDT", "XNY-USDT", "OM-USDT", "MANYU-USDT",
-    "ZRO-USDT", "ICNT-USDT", "ALGO-USDT", "HAIO-USDT", "APT-USDT", "ICP-USDT", "NOC-USDT"
+    "BTC-USDT", "ETH-USDT", "SOL-USDT", "XRP-USDT", "XMR-USDT", "ENA-USDT", "DOGE-USDT", "CRO-USDT", "FARTCOIN-USDT", "OKB-USDT",
+    "ADA-USDT", "LTC-USDT", "SUI-USDT", "SEI-USDT", "PEPE-USDT", "LINK-USDT", "HYPE-USDT", "TON-USDT", "UNI-USDT", "PENGU-USDT", 
+    "AVAX-USDT", "TRX-USDT", "HBAR-USDT", "NEAR-USDT", "ONDO-USDT", "SHIB-USDT", "TAO-USDT", "XLM-USDT", "DOT-USDT", "MNT-USDT", 
+    "FET-USDT", "INJ-USDT", "WIF-USDT", "TIA-USDT", "BNB-USDT", "BONK-USDT", "CRV-USDT", "XPR-USDT", "CFX-USDT", "SPX-USDT", "PI-USDT",
+    "BCH-USDT", "ARB-USDT", "KAS-USDT", "S-USDT", "AAVE-USDT", "ALGO-USDT", "HAIO-USDT", "APT-USDT", "ICP-USDT", "PUMP-USDT", "POPCAT-USDT",
+    "ATOM-USDT", "VET-USDT", "GT-USDT", "FIL-USDT", "JUP-USDT", "OP-USDT", "RAY-USDT", "SAND-USDT", "GALA-USDT", "IOTA-USDT", "THETA-USDT",
+    "NEXO-USDT", "PENDLE-USDT", "CAKE-USDT", "AERO-USDT", "GRT-USDT", "LDO-USDT", "IMX-USDT"
 ]
 
 exchange = ccxt.kucoin()
@@ -265,6 +262,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
