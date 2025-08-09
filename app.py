@@ -5,7 +5,7 @@ from ta.momentum import RSIIndicator
 from datetime import datetime
 import pytz
 
-st.set_page_config(page_title="Análise Heikin-Ashi com Volume, RSI e Stoch RSI", layout="wide")
+st.set_page_config(page_title="Monitor de Criptomoedas", layout="wide")
 
 # ======================
 # Lista de moedas principais
@@ -31,7 +31,9 @@ exchange = ccxt.kucoin()
 def get_symbols_restantes():
     all_markets = exchange.load_markets()
     all_usdt_pairs = [m.replace("/", "-") for m in all_markets if m.endswith("/USDT")]
-    return sorted([s for s in all_usdt_pairs if s not in symbols_principais])
+    excecoes = {"WAXP-USDT", "VAIOT-USDT", "BSV-USDT", "BIFIF-USDT", "ALT-USDT", "VRADOWN-USDT"}  # moedas que não quer mostrar em "outras"
+    return sorted([s for s in all_usdt_pairs if s not in symbols_principais and s not in excecoes])
+
 
 def get_heikin_ashi(df):
     ha_df = df.copy()
@@ -175,7 +177,7 @@ if "hora_restantes" not in st.session_state:
 
 # --- Moedas Principais ---
 st.subheader("🏆 Moedas Principais")
-if st.button("🔄 Atualizar Principais"):
+if st.button("🔄 Atualizar Dados"):
     st.session_state.df_principais = carregar_dados(symbols_principais)
     st.session_state.hora_principais = hora_atual_formatada()
 
@@ -216,8 +218,8 @@ if st.session_state.df_principais is not None:
         st.dataframe(st.session_state.df_principais, use_container_width=True)
 
 # --- Outras Moedas ---
-st.subheader("📋 Outras Moedas da KuCoin")
-if st.button("🔄 Atualizar Outras"):
+st.subheader("📋 Outras Moedas")
+if st.button("🔄 Atualizar Dados"):
     symbols_restantes = get_symbols_restantes()
     st.session_state.df_restantes = carregar_dados(symbols_restantes)
     st.session_state.hora_restantes = hora_atual_formatada()
@@ -257,3 +259,4 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
