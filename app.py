@@ -187,7 +187,7 @@ if st.session_state.hora_principais:
     st.caption(f"⏱️ Última atualização: {st.session_state.hora_principais}")
 
 if st.session_state.df_principais is not None:
-    filtro_principais = st.text_input("🔍 Pesquise um par nas Moedas Principais", key="filtro_principais").upper()
+    filtro_principais = st.text_input("🔍 Pesquise um par em Moedas Principais", key="filtro_principais").upper()
     
     if filtro_principais:
         df_filtrado_principais = st.session_state.df_principais[
@@ -230,7 +230,7 @@ if st.session_state.hora_restantes:
     st.caption(f"⏱️ Última atualização: {st.session_state.hora_restantes}")
 
 if st.session_state.df_restantes is not None:
-    filtro_restantes = st.text_input("🔍 Pesquise um par nas Outras Moedas", key="filtro_restantes").upper()
+    filtro_restantes = st.text_input("🔍 Pesquise um par em Outras Moedas", key="filtro_restantes").upper()
     
     if filtro_restantes:
         df_filtrado_restantes = st.session_state.df_restantes[
@@ -261,6 +261,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
