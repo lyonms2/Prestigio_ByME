@@ -181,29 +181,37 @@ if st.button("🔄 Atualizar Outras"):
 if st.session_state.df_restantes is not None:
     st.dataframe(st.session_state.df_restantes, use_container_width=True)
 
-# Busca para abrir TradingView (fora dos blocos dos botões)
+# Concatenar as moedas das duas tabelas se existirem
+todas_moedas = pd.DataFrame()
+if st.session_state.df_principais is not None:
+    todas_moedas = pd.concat([todas_moedas, st.session_state.df_principais])
+if st.session_state.df_outras is not None:
+    todas_moedas = pd.concat([todas_moedas, st.session_state.df_outras])
+
+# Remover duplicados só por segurança
+todas_moedas = todas_moedas.drop_duplicates(subset=["Par"]) if not todas_moedas.empty else pd.DataFrame(columns=["Par"])
+
+# Filtro e links TradingView
 filtro_link = st.text_input("🔍 Pesquise um par para abrir gráfico TradingView", "").upper()
-if filtro_link:
-        filtrados = [par for par in st.session_state.df_result["Par"] if filtro_link in par]
 
-        st.markdown("### 🔗 Gráficos TradingView")
-        for par in filtrados:
-            url = tradingview_link(par)
-            btn_html = f"""
-                <a href="{url}" target="_blank" style="
-                    text-decoration:none;
-                    color:white;
-                    background-color:#4CAF50;
-                    padding:8px 18px;
-                    border-radius:6px;
-                    display:inline-block;
-                    margin: 4px 6px;
-                    font-weight:bold;
-                    ">
-                    📊 {par}
-                </a>
-            """
-            st.markdown(btn_html, unsafe_allow_html=True)
+if filtro_link and not todas_moedas.empty:
+    filtrados = [par for par in todas_moedas["Par"] if filtro_link in par]
 
-    
-    
+    st.markdown("### 🔗 Gráficos TradingView")
+    for par in filtrados:
+        url = tradingview_link(par)
+        btn_html = f"""
+            <a href="{url}" target="_blank" style="
+                text-decoration:none;
+                color:white;
+                background-color:#4CAF50;
+                padding:8px 18px;
+                border-radius:6px;
+                display:inline-block;
+                margin: 4px 6px;
+                font-weight:bold;
+                ">
+                📊 {par}
+            </a>
+        """
+        st.markdown(btn_html, unsafe_allow_html=True)
