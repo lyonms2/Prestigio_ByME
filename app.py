@@ -8,25 +8,26 @@ import pytz
 # ---------- Config do CSV da planilha com usuários ativos ----------
 URL_PLANILHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcElw5weHbiGxzET7fbS8F3PfjBEfBbTRqH-FK4hOxt7ekTXRcrITxGMB6pMGjvM95b5fmnYiZAj46/pub?gid=0&single=true&output=csv"
 
+@st.cache_data(ttl=600)
 def carregar_usuarios_ativos():
     df = pd.read_csv(URL_PLANILHA)
-    ativos = df[df['Status_Plano'].str.upper() == "ACTIVE"]
-    return ativos['Email'].str.lower().dropna().tolist()
+    ativos = df[df['Status_Plano'].str.strip().str.upper() == "ACTIVE"]
+    return ativos['Email'].str.strip().str.lower().dropna().tolist()
 
-# ---------- Controle de login simples ----------
 if "logado" not in st.session_state:
     st.session_state.logado = False
 
 if not st.session_state.logado:
-    email = st.text_input("Digite seu e-mail cadastrado")
+    st.title("Acesso restrito - Digite seu e-mail cadastrado")
+    email = st.text_input("Email")
     if st.button("Entrar"):
         usuarios_ativos = carregar_usuarios_ativos()
-        if email.lower() in usuarios_ativos:
+        if email and email.strip().lower() in usuarios_ativos:
             st.session_state.logado = True
             st.experimental_rerun()
         else:
             st.error("❌ E-mail não autorizado ou assinatura inativa.")
-    st.stop()  # Para aqui se não estiver logado
+    st.stop() 
 
 # ----------------- SE ESTIVER LOGADO, RODA O APP NORMAL -----------------
 
@@ -286,6 +287,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
