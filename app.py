@@ -10,15 +10,14 @@ URL_PLANILHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcElw5weHbiGxzE
 
 def carregar_usuarios_ativos():
     df = pd.read_csv(URL_PLANILHA)
-    ativos = df[df['status'].str.lower() == "ativo"]
-    return ativos['email'].str.lower().tolist()
+    ativos = df[df['Status_Plano'].str.upper() == "ACTIVE"]
+    return ativos['Email'].str.lower().dropna().tolist()
 
 # ---------- Controle de login simples ----------
 if "logado" not in st.session_state:
     st.session_state.logado = False
 
 if not st.session_state.logado:
-    st.title("🔒 Acesso Restrito")
     email = st.text_input("Digite seu e-mail cadastrado")
     if st.button("Entrar"):
         usuarios_ativos = carregar_usuarios_ativos()
@@ -287,6 +286,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
