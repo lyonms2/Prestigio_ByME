@@ -182,12 +182,26 @@ if st.session_state.df_restantes is not None:
     st.dataframe(st.session_state.df_restantes, use_container_width=True)
 
 # Busca para abrir TradingView (fora dos blocos dos botões)
-st.markdown("---")
-st.markdown("### 🔍 Abrir gráfico no TradingView")
-par_pesquisa = st.text_input("Digite o par para abrir gráfico (ex: BTC-USDT)").upper()
-if par_pesquisa:
-    url = tradingview_link(par_pesquisa)
-    if st.button("Abrir TradingView"):
-        st.markdown(f"[Abrir {par_pesquisa} no TradingView]({url})", unsafe_allow_html=True)
+filtro_link = st.text_input("🔍 Pesquise um par para abrir gráfico TradingView", "").upper()
 
+    if filtro_link:
+        filtrados = [par for par in st.session_state.df_result["Par"] if filtro_link in par]
 
+        st.markdown("### 🔗 Gráficos TradingView")
+        for par in filtrados:
+            url = tradingview_link(par)
+            btn_html = f"""
+                <a href="{url}" target="_blank" style="
+                    text-decoration:none;
+                    color:white;
+                    background-color:#4CAF50;
+                    padding:8px 18px;
+                    border-radius:6px;
+                    display:inline-block;
+                    margin: 4px 6px;
+                    font-weight:bold;
+                    ">
+                    📊 {par}
+                </a>
+            """
+            st.markdown(btn_html, unsafe_allow_html=True)
