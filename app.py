@@ -120,7 +120,11 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
 
 def carregar_dados(symbols):
     resultados = []
-    for symbol in symbols:
+    progresso = st.progress(0)
+    status_text = st.empty()
+    total = len(symbols)
+    for i, symbol in enumerate(symbols):
+        status_text.text(f"Carregando dados: {symbol} ({i+1}/{total})")
         try:
             ohlcv_1h = exchange.fetch_ohlcv(symbol, timeframe='1h', limit=100)
             df_1h = pd.DataFrame(ohlcv_1h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
@@ -154,6 +158,8 @@ def carregar_dados(symbols):
                                stoch_str_1h, stoch_str_4h, volume_alerta, volume_alerta_4h))
         except Exception as e:
             resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", ""))
+        progresso.progress((i+1) / total)
+    status_text.text("Carregamento concluído!")
     return pd.DataFrame(resultados, columns=["Par", "Tendência 1h", "Tendência 4h", "RSI 1h", "RSI 4h", "Stoch RSI 1h", "Stoch RSI 4h", "Vol 1h", "Vol 4h"])
 
 # ======================
@@ -259,5 +265,6 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
