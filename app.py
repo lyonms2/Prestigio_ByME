@@ -167,6 +167,8 @@ if "df_principais" not in st.session_state:
 if "df_restantes" not in st.session_state:
     st.session_state.df_restantes = None
 
+# ... código anterior permanece igual até a parte da interface ...
+
 # Botão Principais
 st.subheader("🏆 Moedas Principais")
 if st.button("🔄 Atualizar Principais"):
@@ -176,11 +178,15 @@ if st.session_state.df_principais is not None:
     filtro_principais = st.text_input("🔍 Pesquise um par nas Moedas Principais", key="filtro_principais").upper()
     
     if filtro_principais:
-        df_filtrado_principais = st.session_state.df_principais[st.session_state.df_principais["Par"].str.contains(filtro_principais)]
+        df_filtrado_principais = st.session_state.df_principais[
+            st.session_state.df_principais["Par"].str.contains(filtro_principais)
+        ]
         
         if not df_filtrado_principais.empty:
             st.markdown("### 🔗 Gráficos TradingView - Moedas Principais")
-            for par in df_filtrado_principais["Par"]:
+            cols = st.columns(min(len(df_filtrado_principais), 5))  # Máximo 5 colunas por linha
+            
+            for idx, par in enumerate(df_filtrado_principais["Par"]):
                 url = tradingview_link(par)
                 btn_html = f"""
                     <a href="{url}" target="_blank" style="
@@ -196,10 +202,9 @@ if st.session_state.df_principais is not None:
                         📊 {par}
                     </a>
                 """
-                st.markdown(btn_html, unsafe_allow_html=True)
+                cols[idx % 5].markdown(btn_html, unsafe_allow_html=True)
         st.dataframe(df_filtrado_principais, use_container_width=True)
     else:
-        # Sem filtro: mostra toda a tabela, sem links e título
         st.dataframe(st.session_state.df_principais, use_container_width=True)
 
 
@@ -213,11 +218,15 @@ if st.session_state.df_restantes is not None:
     filtro_restantes = st.text_input("🔍 Pesquise um par nas Outras Moedas", key="filtro_restantes").upper()
     
     if filtro_restantes:
-        df_filtrado_restantes = st.session_state.df_restantes[st.session_state.df_restantes["Par"].str.contains(filtro_restantes)]
+        df_filtrado_restantes = st.session_state.df_restantes[
+            st.session_state.df_restantes["Par"].str.contains(filtro_restantes)
+        ]
         
         if not df_filtrado_restantes.empty:
             st.markdown("### 🔗 Gráficos TradingView - Outras Moedas")
-            for par in df_filtrado_restantes["Par"]:
+            cols = st.columns(min(len(df_filtrado_restantes), 5))  # Máximo 5 colunas por linha
+            
+            for idx, par in enumerate(df_filtrado_restantes["Par"]):
                 url = tradingview_link(par)
                 btn_html = f"""
                     <a href="{url}" target="_blank" style="
@@ -233,8 +242,9 @@ if st.session_state.df_restantes is not None:
                         📊 {par}
                     </a>
                 """
-                st.markdown(btn_html, unsafe_allow_html=True)
+                cols[idx % 5].markdown(btn_html, unsafe_allow_html=True)
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
-        # Sem filtro: mostra toda a tabela, sem links e título
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
+
