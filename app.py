@@ -23,7 +23,7 @@ if not st.session_state.logado:
         usuarios_ativos = carregar_usuarios_ativos()
         if email.lower() in usuarios_ativos:
             st.session_state.logado = True
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("E-mail não autorizado ou assinatura inativa.")
     st.stop()
@@ -285,6 +285,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
