@@ -25,7 +25,7 @@ if not st.session_state.logado:
             st.session_state.logado = True
             st.rerun()
         else:
-            st.error("E-mail não autorizado ou assinatura inativa.")
+            st.error(" ❌ E-mail não autorizado ou assinatura inativa.")
     st.stop()
 
 # Se chegou aqui, usuário está logado
@@ -138,6 +138,27 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
         return "📉 Descendo", last_d
     return "🚨 Cruzando", last_d
 
+# ======================
+# Escolha dos timeframes
+# ======================
+opcoes_timeframe = {
+    "15 Minutos": "15m",
+    "30 Minutos": "30m",
+    "1 Hora": "1h",
+    "4 Horas": "4h",
+    "Diário": "1d"
+}
+
+col1, col2 = st.columns(2)
+with col1:
+    tf1_label = st.selectbox("⏳ Primeiro Timeframe", list(opcoes_timeframe.keys()), index=2)  # padrão 1h
+with col2:
+    tf2_label = st.selectbox("⏳ Segundo Timeframe", list(opcoes_timeframe.keys()), index=3)  # padrão 4h
+
+tf1 = opcoes_timeframe[tf1_label]
+tf2 = opcoes_timeframe[tf2_label]
+
+
 def carregar_dados(symbols):
     resultados = []
     progresso = st.progress(0)
@@ -146,7 +167,7 @@ def carregar_dados(symbols):
     for i, symbol in enumerate(symbols):
         status_text.text(f"Carregando dados: {symbol} ({i+1}/{total})")
         try:
-            ohlcv_1h = exchange.fetch_ohlcv(symbol, timeframe='1h', limit=100)
+            ohlcv_1h = exchange.fetch_ohlcv(symbol, timeframe=tf1, limit=100)
             df_1h = pd.DataFrame(ohlcv_1h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df_1h['timestamp'] = pd.to_datetime(df_1h['timestamp'], unit='ms')
             ha_df_1h = get_heikin_ashi(df_1h)
@@ -160,7 +181,7 @@ def carregar_dados(symbols):
             stoch_signal_1h, stoch_value_1h = stochrsi_signal(stochrsi_k_1h, stochrsi_d_1h)
             stoch_str_1h = f"{stoch_signal_1h} ({round(stoch_value_1h, 2)})" if stoch_value_1h is not None else stoch_signal_1h
 
-            ohlcv_4h = exchange.fetch_ohlcv(symbol, timeframe='4h', limit=100)
+            ohlcv_4h = exchange.fetch_ohlcv(symbol, timeframe=tf2, limit=100)
             df_4h = pd.DataFrame(ohlcv_4h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df_4h['timestamp'] = pd.to_datetime(df_4h['timestamp'], unit='ms')
             ha_df_4h = get_heikin_ashi(df_4h)
@@ -286,3 +307,4 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
