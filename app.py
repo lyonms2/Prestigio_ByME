@@ -203,7 +203,9 @@ def carregar_dados(symbols):
             resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", ""))
         progresso.progress((i+1) / total)
     status_text.text("Carregamento concluído!")
-    return pd.DataFrame(resultados, columns=["Par", "Tendência 1h", "Tendência 4h", "RSI 1h", "RSI 4h", "Stoch RSI 1h", "Stoch RSI 4h", "Vol 1h", "Vol 4h"])
+    return pd.DataFrame(resultados, columns=["Par", f"Tendência {tf1_label}", f"Tendência {tf2_label}", f"RSI {tf1_label}", f"RSI {tf2_label}", f"Stoch RSI {tf1_label}", f"Stoch RSI {tf2_label}", f"Vol {tf1_label}", f"Vol {tf2_label}"
+                                    ]
+    )
 
 # ======================
 # Interface
@@ -309,5 +311,6 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
 
 
