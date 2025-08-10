@@ -16,6 +16,9 @@ def carregar_usuarios_ativos():
 
 
 # Verifica se o usuário está logado
+if "logado" not in st.session_state:
+    st.session_state.logado = False
+    
 if not st.session_state.logado:
     st.title("Acesso restrito - Digite seu e-mail cadastrado")
     email = st.text_input("Email", label_visibility="collapsed")
@@ -295,6 +298,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
