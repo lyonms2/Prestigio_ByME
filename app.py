@@ -138,6 +138,8 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
         return "📉 Descendo", last_d
     return "🚨 Cruzando", last_d
 
+st.title("📊 Monitor de Criptomoedas")
+
 # ======================
 # Escolha dos timeframes
 # ======================
@@ -207,7 +209,7 @@ def carregar_dados(symbols):
 # Interface
 # ======================
 
-st.title("📊 Monitor de Criptomoedas")
+
 
 def hora_atual_formatada():
     return datetime.now(pytz.timezone("America/Sao_Paulo")).strftime('%d/%m/%Y %H:%M:%S')
@@ -307,4 +309,5 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
 
