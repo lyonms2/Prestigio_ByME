@@ -9,23 +9,38 @@ import pytz
 URL_PLANILHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcElw5weHbiGxzET7fbS8F3PfjBEfBbTRqH-FK4hOxt7ekTXRcrITxGMB6pMGjvM95b5fmnYiZAj46/pub?gid=0&single=true&output=csv"
 
 def carregar_usuarios_ativos():
-    df = pd.read_csv(URL_PLANILHA)
+    try:
+        df = pd.read_csv(URL_PLANILHA)
+    except Exception as e:
+        st.error(f"Erro ao carregar planilha: {e}")
+        return []
+
+    # Normalizar nomes de colunas para evitar erros de maiúsculas/minúsculas
+    df.columns = df.columns.str.strip().str.lower()
+
+    if 'status_plano' not in df.columns or 'email' not in df.columns:
+        st.error("A planilha precisa ter as colunas 'email' e 'status_plano'.")
+        return []
+
+    # Garantir que tudo é string e tratar nulos
+    df['status_plano'] = df['status_plano'].fillna('').astype(str).str.strip()
+    df['email'] = df['email'].fillna('').astype(str).str.strip()
+
     ativos = df[df['status_plano'].str.upper() == "ACTIVE"]
-    return ativos['email'].str.lower().dropna().tolist()
+    return ativos['email'].tolist()
 
-if "logado" not in st.session_state:
-    st.session_state.logado = False
+# --- Interface Streamlit ---
+st.title("Área restrita")
 
-if not st.session_state.logado:
-    st.title("🔒 Acesso Restrito")
-    email = st.text_input("Digite seu e-mail cadastrado")
-    if st.button("Entrar"):
-        usuarios_ativos = carregar_usuarios_ativos()
-        if email.lower() in usuarios_ativos:
-            st.session_state.logado = True
-            st.rerun()
-        else:
-            st.error("E-mail não autorizado ou assinatura inativa.")
+usuarios_ativos = carregar_usuarios_ativos()
+email_usuario = st.text_input("Digite seu e-mail:")
+
+if email_usuario:
+    if email_usuario.strip().lower() in [e.lower() for e in usuarios_ativos]:
+        st.success("✅ Acesso liberado!")
+        st.write("Conteúdo restrito aqui...")
+    else:
+        st.error("❌ Acesso negado.")
     st.stop()
 
 # Se chegou aqui, usuário está logado
@@ -285,6 +300,7 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
