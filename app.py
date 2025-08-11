@@ -32,7 +32,7 @@ if not st.session_state.logado:
         """
         <div style="text-align:center; margin-top:10px;">
             <a href="https://go.hotmart.com/U101275018E" target="_blank" style="
-                background-color:#ff4b4b;
+                background: linear-gradient(90deg, #ff6600, #ff3300);
                 color:white;
                 padding:10px 20px;
                 text-decoration:none;
@@ -434,6 +434,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
