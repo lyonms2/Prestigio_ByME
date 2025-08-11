@@ -170,52 +170,70 @@ def carregar_dados(symbols):
     for i, symbol in enumerate(symbols):
         status_text.text(f"Carregando dados: {symbol} ({i+1}/{total})")
         try:
-            ohlcv_1h = exchange.fetch_ohlcv(symbol, timeframe=tf1, limit=100)
-            df_1h = pd.DataFrame(ohlcv_1h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df_1h['timestamp'] = pd.to_datetime(df_1h['timestamp'], unit='ms')
-            ha_df_1h = get_heikin_ashi(df_1h)
+            # -------- Timeframe 1 --------
+            ohlcv_tf1 = exchange.fetch_ohlcv(symbol, timeframe=tf1, limit=100)
+            df_tf1 = pd.DataFrame(ohlcv_tf1, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df_tf1['timestamp'] = pd.to_datetime(df_tf1['timestamp'], unit='ms')
+            ha_df_tf1 = get_heikin_ashi(df_tf1)
 
-            tendencia_1h = analyze_ha_trend(ha_df_1h)
-            volume_alerta = detect_volume_spike(df_1h)
-            rsi_1h = RSIIndicator(close=ha_df_1h["HA_Close"], window=14).rsi()
-            rsi_valor_1h = round(rsi_1h.iloc[-1], 2)
-            rsi_status_1h = f"{rsi_valor_1h} - {classificar_rsi(rsi_valor_1h)}"
-            stochrsi_k_1h, stochrsi_d_1h = calculate_stochrsi(ha_df_1h['HA_Close'])
-            stoch_signal_1h, stoch_value_1h = stochrsi_signal(stochrsi_k_1h, stochrsi_d_1h)
-            stoch_str_1h = f"{stoch_signal_1h} ({round(stoch_value_1h, 2)})" if stoch_value_1h is not None else stoch_signal_1h
-
+            tendencia_tf1 = analyze_ha_trend(ha_df_tf1)
+            volume_alerta_tf1 = detect_volume_spike(df_tf1)
+            rsi_tf1 = RSIIndicator(close=ha_df_tf1["HA_Close"], window=14).rsi()
+            rsi_valor_tf1 = round(rsi_tf1.iloc[-1], 2)
+            rsi_status_tf1 = f"{rsi_valor_tf1} - {classificar_rsi(rsi_valor_tf1)}"
+            stochrsi_k_tf1, stochrsi_d_tf1 = calculate_stochrsi(ha_df_tf1['HA_Close'])
+            stoch_signal_tf1, stoch_value_tf1 = stochrsi_signal(stochrsi_k_tf1, stochrsi_d_tf1)
+            stoch_str_tf1 = f"{stoch_signal_tf1} ({round(stoch_value_tf1, 2)})" if stoch_value_tf1 is not None else stoch_signal_tf1
+            
             # EMA 20 - Timeframe 1
             ema_tf1 = EMAIndicator(close=ha_df_tf1["HA_Close"], window=20).ema_indicator()
             ema_signal_tf1 = "⬆️" if ha_df_tf1["HA_Close"].iloc[-1] > ema_tf1.iloc[-1] else "⬇️"
 
+            # -------- Timeframe 2 --------
+            ohlcv_tf2 = exchange.fetch_ohlcv(symbol, timeframe=tf2, limit=100)
+            df_tf2 = pd.DataFrame(ohlcv_tf2, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df_tf2['timestamp'] = pd.to_datetime(df_tf2['timestamp'], unit='ms')
+            ha_df_tf2 = get_heikin_ashi(df_tf2)
+
+            tendencia_tf2 = analyze_ha_trend(ha_df_tf2)
+            volume_alerta_tf2 = detect_volume_spike(df_tf2)
+            rsi_tf2 = RSIIndicator(close=ha_df_tf2["HA_Close"], window=14).rsi()
+            rsi_valor_tf2 = round(rsi_tf2.iloc[-1], 2)
+            rsi_status_tf2 = f"{rsi_valor_tf2} - {classificar_rsi(rsi_valor_tf2)}"
+            stochrsi_k_tf2, stochrsi_d_tf2 = calculate_stochrsi(ha_df_tf2['HA_Close'])
+            stoch_signal_tf2, stoch_value_tf2 = stochrsi_signal(stochrsi_k_tf2, stochrsi_d_tf2)
+            stoch_str_tf2 = f"{stoch_signal_tf2} ({round(stoch_value_tf2, 2)})" if stoch_value_tf2 is not None else stoch_signal_tf2
             
-            ohlcv_4h = exchange.fetch_ohlcv(symbol, timeframe=tf2, limit=100)
-            df_4h = pd.DataFrame(ohlcv_4h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df_4h['timestamp'] = pd.to_datetime(df_4h['timestamp'], unit='ms')
-            ha_df_4h = get_heikin_ashi(df_4h)
-
-            tendencia_4h = analyze_ha_trend(ha_df_4h)
-            volume_alerta_4h = detect_volume_spike(df_4h)
-            rsi_4h = RSIIndicator(close=ha_df_4h["HA_Close"], window=14).rsi()
-            rsi_valor_4h = round(rsi_4h.iloc[-1], 2)
-            rsi_status_4h = f"{rsi_valor_4h} - {classificar_rsi(rsi_valor_4h)}"
-            stochrsi_k_4h, stochrsi_d_4h = calculate_stochrsi(ha_df_4h['HA_Close'])
-            stoch_signal_4h, stoch_value_4h = stochrsi_signal(stochrsi_k_4h, stochrsi_d_4h)
-            stoch_str_4h = f"{stoch_signal_4h} ({round(stoch_value_4h, 2)})" if stoch_value_4h is not None else stoch_signal_4h
-
             # EMA 20 - Timeframe 2
             ema_tf2 = EMAIndicator(close=ha_df_tf2["HA_Close"], window=20).ema_indicator()
             ema_signal_tf2 = "⬆️" if ha_df_tf2["HA_Close"].iloc[-1] > ema_tf2.iloc[-1] else "⬇️"
-            
-            resultados.append((symbol, tendencia_1h, tendencia_4h, rsi_status_1h, rsi_status_4h, stoch_str_1h, stoch_str_4h, ema_signal_tf1, ema_signal_tf2, volume_alerta, volume_alerta_4h))
-        except Exception as e:
-            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", "","",""))
-        progresso.progress((i+1) / total)
-    status_text.text("Carregamento concluído!")
-    return pd.DataFrame(resultados, columns=["Par", f"Tendência {tf1_label}", f"Tendência {tf2_label}", f"RSI {tf1_label}", f"RSI {tf2_label}", f"Stoch RSI {tf1_label}", f"Stoch RSI {tf2_label}", f"EMA20 {tf1_label}", f"EMA20 {tf2_label}", f"Vol {tf1_label}", f"Vol {tf2_label}"
-                                    ]
-    )
 
+            resultados.append((
+                symbol,
+                tendencia_tf1, tendencia_tf2,
+                rsi_status_tf1, rsi_status_tf2,
+                stoch_str_tf1, stoch_str_tf2,
+                ema_signal_tf1, ema_signal_tf2,
+                volume_alerta_tf1, volume_alerta_tf2
+            ))
+        except Exception as e:
+            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", "", "", ""))
+
+        progresso.progress((i+1) / total)
+
+    status_text.text("Carregamento concluído!")
+
+    return pd.DataFrame(
+        resultados,
+        columns=[
+            "Par",
+            f"Tendência {tf1_label}", f"Tendência {tf2_label}",
+            f"RSI {tf1_label}", f"RSI {tf2_label}",
+            f"Stoch RSI {tf1_label}", f"Stoch RSI {tf2_label}",
+            f"EMA20 {tf1_label}", f"EMA20 {tf2_label}",
+            f"Vol {tf1_label}", f"Vol {tf2_label}"
+        ]
+    )
 # ======================
 # Interface
 # ======================
@@ -320,6 +338,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
 
 
 
