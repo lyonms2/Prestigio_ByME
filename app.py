@@ -118,6 +118,7 @@ def tradingview_link(symbol):
     # Ajuste para transformar "BTC-USDT" em "BTCUSDT"
     return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
 
+# Corretoras ----
 def binance_link(symbol):
     return f"https://www.binance.com/en/trade/{symbol.replace('-', '')}?theme=dark&type=spot"
 
@@ -267,9 +268,8 @@ def carregar_dados(symbols):
             f"Vol {tf1_label}", f"Vol {tf2_label}"
         ]
     )
-# ======================
-# Interface
-# ======================
+
+# Edição Corretoras ---
 corretoras_links = {
     "Binance": {
         "func": binance_link,
@@ -284,8 +284,6 @@ corretoras_links = {
         "emoji": "🌀"
     }
 }
-
-
 
 def hora_atual_formatada():
     return datetime.now(pytz.timezone("America/Sao_Paulo")).strftime('%d/%m/%Y %H:%M:%S')
@@ -415,13 +413,4 @@ if st.session_state.df_restantes is not None:
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
-                
-
-
-
-
-
-
-
-
-
+        
