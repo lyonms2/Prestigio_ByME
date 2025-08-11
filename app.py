@@ -121,8 +121,8 @@ def tradingview_link(symbol):
 def binance_link(symbol):
     return f"https://www.binance.com/en/trade/{symbol.replace('-', '')}?theme=dark&type=spot"
 
-def hyperliquid_link(symbol):
-    return f"https://app.hyperliquid.xyz/trade/{symbol.replace('-', '')}"    
+def hyperliquid_link(symbol):    
+    return f"https://app.hyperliquid.xyz/trade/{symbol.replace('-USDT', '')}"    
 
 def calculate_stochrsi(close, rsi_period=14, stoch_period=14, smooth_k=3, smooth_d=3):
     rsi = RSIIndicator(close=close, window=rsi_period).rsi()
@@ -416,6 +416,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
 
 
 
