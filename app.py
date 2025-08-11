@@ -118,6 +118,12 @@ def tradingview_link(symbol):
     # Ajuste para transformar "BTC-USDT" em "BTCUSDT"
     return f"https://www.tradingview.com/chart/?symbol=KUCOIN:{symbol.replace('-', '')}"
 
+def binance_link(symbol):
+    return f"https://www.binance.com/en/trade/{symbol.replace('-', '')}?theme=dark&type=spot"
+
+def hyperliquid_link(symbol):
+    return f"https://app.hyperliquid.xyz/trade/{symbol.replace('-', '')}"    
+
 def calculate_stochrsi(close, rsi_period=14, stoch_period=14, smooth_k=3, smooth_d=3):
     rsi = RSIIndicator(close=close, window=rsi_period).rsi()
     min_rsi = rsi.rolling(window=stoch_period).min()
@@ -157,6 +163,8 @@ with col1:
     tf1_label = st.selectbox("⏳ Primeiro Timeframe", list(opcoes_timeframe.keys()), index=2)  # padrão 1h
 with col2:
     tf2_label = st.selectbox("⏳ Segundo Timeframe", list(opcoes_timeframe.keys()), index=3)  # padrão 4h
+with col3:
+    corretora_label = st.selectbox("🏦 Corretora", ["Binance", "Hyperliquid"], index=0)
 
 tf1 = opcoes_timeframe[tf1_label]
 tf2 = opcoes_timeframe[tf2_label]
@@ -262,6 +270,20 @@ def carregar_dados(symbols):
 # ======================
 # Interface
 # ======================
+corretoras_links = {
+    "Binance": {
+        "func": binance_link,
+        "color": "#f3ba2f",
+        "text_color": "black",
+        "emoji": "🟡"
+    },
+    "Hyperliquid": {
+        "func": hyperliquid_link,
+        "color": "#00c2ff",
+        "text_color": "white",
+        "emoji": "🌀"
+    }
+}
 
 
 
@@ -315,7 +337,23 @@ if st.session_state.df_principais is not None:
                         📊 {par}
                     </a>
                 """
-                cols[idx % 5].markdown(btn_html, unsafe_allow_html=True)
+
+                link_func = corretoras_links[corretora_label]["func"]
+                corr_url = link_func(par)
+                corr_btn = f"""
+                    <a href="{corr_url}" target="_blank" style="
+                        text-decoration:none;
+                        color:{corretoras_links[corretora_label]['text_color']};
+                        background-color:{corretoras_links[corretora_label]['color']};
+                        padding:4px 9px;
+                        border-radius:3px;
+                        font-weight:bold;">
+                        {corretoras_links[corretora_label]['emoji']} {corretora_label}
+                     </a>
+                 """
+                
+                cols[idx % 5].markdown(btn_html + corr_btn, unsafe_allow_html=True)
+                
         st.dataframe(df_filtrado_principais, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_principais, use_container_width=True)
@@ -358,11 +396,27 @@ if st.session_state.df_restantes is not None:
                         📊 {par}
                     </a>
                 """
-                cols[idx % 5].markdown(btn_html, unsafe_allow_html=True)
+                
+                link_func = corretoras_links[corretora_label]["func"]
+                corr_url = link_func(par)
+                corr_btn = f"""
+                    <a href="{corr_url}" target="_blank" style="
+                        text-decoration:none;
+                        color:{corretoras_links[corretora_label]['text_color']};
+                        background-color:{corretoras_links[corretora_label]['color']};
+                        padding:4px 9px;
+                        border-radius:3px;
+                        font-weight:bold;">
+                        {corretoras_links[corretora_label]['emoji']} {corretora_label}
+                     </a>
+                 """
+                 
+                cols[idx % 5].markdown(btn_html + corr_btn, unsafe_allow_html=True)
         st.dataframe(df_filtrado_restantes, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
 
 
 
