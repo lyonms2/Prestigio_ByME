@@ -239,7 +239,7 @@ def carregar_dados(symbols):
             
             # EMA 20
             ema_tf2 = EMAIndicator(close=base_tf2["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf2["close"], window=20).ema_indicator()
-            ema_signal_tf2 = "⬆️" if (base_tf2["HA_Close"].iloc[-1] if tipo_candle == "Heikin Ashi" else base_tf2["close"].iloc[-1]) > ema_tf2.iloc[-1] else "⬇️"
+            ema_signal_tf2 = " ⬆️ 🟢 " if (base_tf2["HA_Close"].iloc[-1] if tipo_candle == "Heikin Ashi" else base_tf2["close"].iloc[-1]) > ema_tf2.iloc[-1] else " ⬇️ 🔴 "
 
             resultados.append((
                 symbol,
@@ -414,4 +414,5 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
