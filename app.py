@@ -2,6 +2,7 @@ import streamlit as st
 import ccxt
 import pandas as pd
 from ta.momentum import RSIIndicator
+from ta.trend import EMAIndicator
 from datetime import datetime
 import pytz
 
@@ -183,6 +184,11 @@ def carregar_dados(symbols):
             stoch_signal_1h, stoch_value_1h = stochrsi_signal(stochrsi_k_1h, stochrsi_d_1h)
             stoch_str_1h = f"{stoch_signal_1h} ({round(stoch_value_1h, 2)})" if stoch_value_1h is not None else stoch_signal_1h
 
+            # EMA 20 - Timeframe 1
+            ema_tf1 = EMAIndicator(close=ha_df_tf1["HA_Close"], window=20).ema_indicator()
+            ema_signal_tf1 = "⬆️" if ha_df_tf1["HA_Close"].iloc[-1] > ema_tf1.iloc[-1] else "⬇️"
+
+            
             ohlcv_4h = exchange.fetch_ohlcv(symbol, timeframe=tf2, limit=100)
             df_4h = pd.DataFrame(ohlcv_4h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
             df_4h['timestamp'] = pd.to_datetime(df_4h['timestamp'], unit='ms')
@@ -197,13 +203,16 @@ def carregar_dados(symbols):
             stoch_signal_4h, stoch_value_4h = stochrsi_signal(stochrsi_k_4h, stochrsi_d_4h)
             stoch_str_4h = f"{stoch_signal_4h} ({round(stoch_value_4h, 2)})" if stoch_value_4h is not None else stoch_signal_4h
 
-            resultados.append((symbol, tendencia_1h, tendencia_4h, rsi_status_1h, rsi_status_4h,
-                               stoch_str_1h, stoch_str_4h, volume_alerta, volume_alerta_4h))
+            # EMA 20 - Timeframe 2
+            ema_tf2 = EMAIndicator(close=ha_df_tf2["HA_Close"], window=20).ema_indicator()
+            ema_signal_tf2 = "⬆️" if ha_df_tf2["HA_Close"].iloc[-1] > ema_tf2.iloc[-1] else "⬇️"
+            
+            resultados.append((symbol, tendencia_1h, tendencia_4h, rsi_status_1h, rsi_status_4h, stoch_str_1h, stoch_str_4h, ema_signal_tf1, ema_signal_tf2, volume_alerta, volume_alerta_4h))
         except Exception as e:
-            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", ""))
+            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", "","",""))
         progresso.progress((i+1) / total)
     status_text.text("Carregamento concluído!")
-    return pd.DataFrame(resultados, columns=["Par", f"Tendência {tf1_label}", f"Tendência {tf2_label}", f"RSI {tf1_label}", f"RSI {tf2_label}", f"Stoch RSI {tf1_label}", f"Stoch RSI {tf2_label}", f"Vol {tf1_label}", f"Vol {tf2_label}"
+    return pd.DataFrame(resultados, columns=["Par", f"Tendência {tf1_label}", f"Tendência {tf2_label}", f"RSI {tf1_label}", f"RSI {tf2_label}", f"Stoch RSI {tf1_label}", f"Stoch RSI {tf2_label}", f"EMA20 {tf1_label}", f"EMA20 {tf2_label}", f"Vol {tf1_label}", f"Vol {tf2_label}"
                                     ]
     )
 
@@ -311,6 +320,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
 
 
 
