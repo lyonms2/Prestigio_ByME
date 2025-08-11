@@ -158,7 +158,7 @@ opcoes_timeframe = {
     "Diário": "1d"
 }
 
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     tf1_label = st.selectbox("⏳ Primeiro Timeframe", list(opcoes_timeframe.keys()), index=2)  # padrão 1h
 with col2:
@@ -416,6 +416,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
                 
+
 
 
 
