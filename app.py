@@ -27,6 +27,26 @@ if not st.session_state.logado:
             st.rerun()
         else:
             st.error(" ❌ E-mail não autorizado ou assinatura inativa.")
+    # Link estilizado abaixo do botão
+st.markdown(
+    """
+    <div style="text-align:center; margin-top:10px;">
+        <a href="https://go.hotmart.com/U101275018E" target="_blank" style="
+            background-color:#ff4b4b;
+            color:white;
+            padding:10px 20px;
+            text-decoration:none;
+            border-radius:8px;
+            font-weight:bold;
+            display:inline-block;
+            transition: background-color 0.3s;
+        " onmouseover="this.style.backgroundColor='#ff1c1c'" onmouseout="this.style.backgroundColor='#ff4b4b'">
+            🔥 Assinar Agora 🔥
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)            
     st.stop()
 
 # Se chegou aqui, usuário está logado
@@ -414,5 +434,6 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
