@@ -419,17 +419,25 @@ if st.session_state.hora_restantes:
     st.caption(f"⏱️ Última atualização: {st.session_state.hora_restantes}")
 
 if st.session_state.df_restantes is not None:
-    filtro_restantes = st.text_input("🔍 Pesquise um par em Outras Moedas", key="filtro_restantes").upper()
-    
-    if filtro_restantes:
+    filtro_restantes_input = st.text_input(
+        "🔍 Pesquise uma ou mais outras Moedas (separe por vírgula 😉)",
+        key="filtro_restantes"
+    ).upper()
+
+    if filtro_restantes_input:
+        # Lista de termos para buscar
+        filtros = [f.strip() for f in filtro_restantes_input.split(",") if f.strip()]
+
+        # Filtra se qualquer termo aparecer no "Par"
         df_filtrado_restantes = st.session_state.df_restantes[
-            st.session_state.df_restantes["Par"].str.contains(filtro_restantes)
+            st.session_state.df_restantes["Par"].apply(
+                lambda x: any(f in x for f in filtros)
+            )
         ]
-        
+
         if not df_filtrado_restantes.empty:
-            
             cols = st.columns(min(len(df_filtrado_restantes), 5))  # Máximo 5 colunas por linha
-            
+
             for idx, par in enumerate(df_filtrado_restantes["Par"]):
                 url = tradingview_link(par)
                 btn_html = f"""
@@ -446,7 +454,7 @@ if st.session_state.df_restantes is not None:
                         📊 {par}
                     </a>
                 """
-                
+
                 link_func = corretoras_links[corretora_label]["func"]
                 corr_url = link_func(par)
                 corr_btn = f"""
@@ -460,12 +468,16 @@ if st.session_state.df_restantes is not None:
                         {corretoras_links[corretora_label]['emoji']} {corretora_label}
                      </a>
                  """
-                 
+
                 cols[idx % 5].markdown(btn_html + corr_btn, unsafe_allow_html=True)
-        st.dataframe(df_filtrado_restantes, use_container_width=True)
+
+            st.dataframe(df_filtrado_restantes, use_container_width=True)
+
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
         
+
 
 
 
