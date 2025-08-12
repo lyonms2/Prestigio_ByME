@@ -406,8 +406,7 @@ if st.session_state.df_principais is not None:
 
     else:
         st.dataframe(st.session_state.df_principais, use_container_width=True)
-    else:
-        st.dataframe(st.session_state.df_principais, use_container_width=True)
+    
 
 # --- Outras Moedas ---
 st.subheader("📋 Outras Moedas")
@@ -467,6 +466,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
