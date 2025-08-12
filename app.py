@@ -140,13 +140,20 @@ def tradingview_link(symbol):
 
 # Corretoras ----
 def binance_link(symbol):
-    return f"https://www.binance.com/en/trade/{symbol.replace('-', '')}?theme=dark&type=spot"
+    return f"https://www.binance.com/pt/trade/{symbol.replace('-USDT', '_USDT?type=cross')}"
 
 def hyperliquid_link(symbol):    
     return f"https://app.hyperliquid.xyz/trade/{symbol.replace('-USDT', '')}"  
 
 def bybit_link(symbol):    
     return f"https://www.bybit.com/trade/usdt/{symbol.replace('-', '')}"
+
+def mexc_link(symbol):    
+    return f"https://www.mexc.com/pt-BR/futures/{symbol.replace('-', '_')}"
+
+def kucoin_link(symbol):    
+    return f"https://www.kucoin.com/pt/trade/margin/{symbol}"
+# Fim Corretoras -----
 
 def calculate_stochrsi(close, rsi_period=14, stoch_period=14, smooth_k=3, smooth_d=3):
     rsi = RSIIndicator(close=close, window=rsi_period).rsi()
@@ -188,7 +195,7 @@ with col1:
 with col2:
     tf2_label = st.selectbox("⏳ Segundo Timeframe", list(opcoes_timeframe.keys()), index=3)  # padrão 4h
 with col3:
-    corretora_label = st.selectbox("🏦 Corretora", ["Binance", "Bybit", "Hyperliquid"], index=0)
+    corretora_label = st.selectbox("🏦 Corretora", ["Binance", "Bybit", "Hyperliquid", "mexc", "kucoin", index=0)
 
 tf1 = opcoes_timeframe[tf1_label]
 tf2 = opcoes_timeframe[tf2_label]
@@ -298,7 +305,7 @@ corretoras_links = {
         "func": binance_link,
         "color": "#262624",
         "text_color": "white",
-        "emoji": "🟡"
+        "emoji": "🟠"
     },
     "Bybit": {
         "func": bybit_link,
@@ -311,6 +318,18 @@ corretoras_links = {
         "color": "#262624",
         "text_color": "white",
         "emoji": "🔵"
+    }
+    "kucoin": {
+        "func": kucoin_link,
+        "color": "#262624",
+        "text_color": "white",
+        "emoji": "🟢"
+    }
+    "mexc": {
+        "func": mexc_link,
+        "color": "#262624",
+        "text_color": "white",
+        "emoji": "⚪"
     }
 }
 
@@ -443,6 +462,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
