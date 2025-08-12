@@ -356,11 +356,11 @@ if st.session_state.hora_principais:
     st.caption(f"⏱️ Última atualização: {st.session_state.hora_principais}")
 
 if st.session_state.df_principais is not None:
-    filtro_principais = st.text_input("🔍 Pesquise um par em Moedas Principais", key="filtro_principais").upper()
+    filtro_principais = st.text_input("🔍 Pesquise uma ou mais Moedas Principais (separe por vírgula 😉)", key="filtro_principais").upper()
     
     if filtro_principais:
         df_filtrado_principais = st.session_state.df_principais[
-            st.session_state.df_principais["Par"].str.contains(filtro_principais)
+            st.session_state.df_principais["Par"].apply(lambda x: any(f in x for f in filtros))
         ]
         
         if not df_filtrado_principais.empty:
@@ -462,6 +462,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
