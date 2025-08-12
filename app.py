@@ -356,17 +356,22 @@ if st.session_state.hora_principais:
     st.caption(f"⏱️ Última atualização: {st.session_state.hora_principais}")
 
 if st.session_state.df_principais is not None:
-    filtro_principais = st.text_input("🔍 Pesquise uma ou mais Moedas Principais (separe por vírgula 😉)", key="filtro_principais").upper()
+    filtro_principais_input = st.text_input("🔍 Pesquise uma ou mais Moedas Principais (separe por vírgula 😉)", key="filtro_principais").upper()
     
-    if filtro_principais:
+    if filtro_principais_input:
+        # Definindo a lista de filtros
+        filtros = [f.strip() for f in filtro_principais_input.split(",") if f.strip()]
+
+        # Filtra se qualquer um dos termos aparecer no "Par"
         df_filtrado_principais = st.session_state.df_principais[
-            st.session_state.df_principais["Par"].apply(lambda x: any(f in x for f in filtros))
+            st.session_state.df_principais["Par"].apply(
+                lambda x: any(f in x for f in filtros)
+            )
         ]
-        
+
         if not df_filtrado_principais.empty:
-            
-            cols = st.columns(min(len(df_filtrado_principais), 5))  # Máximo 5 colunas por linha
-            
+            cols = st.columns(min(len(df_filtrado_principais), 5))
+
             for idx, par in enumerate(df_filtrado_principais["Par"]):
                 url = tradingview_link(par)
                 btn_html = f"""
@@ -378,12 +383,10 @@ if st.session_state.df_principais is not None:
                         border-radius:3px;
                         display:inline-block;
                         margin: 2px 3px;
-                        font-weight:bold;
-                        ">
+                        font-weight:bold;">
                         📊 {par}
                     </a>
                 """
-
                 link_func = corretoras_links[corretora_label]["func"]
                 corr_url = link_func(par)
                 corr_btn = f"""
@@ -395,12 +398,14 @@ if st.session_state.df_principais is not None:
                         border-radius:3px;
                         font-weight:bold;">
                         {corretoras_links[corretora_label]['emoji']} {corretora_label}
-                     </a>
-                 """
-                
+                    </a>
+                """
                 cols[idx % 5].markdown(btn_html + corr_btn, unsafe_allow_html=True)
-                
-        st.dataframe(df_filtrado_principais, use_container_width=True)
+
+            st.dataframe(df_filtrado_principais, use_container_width=True)
+
+    else:
+        st.dataframe(st.session_state.df_principais, use_container_width=True)
     else:
         st.dataframe(st.session_state.df_principais, use_container_width=True)
 
@@ -462,6 +467,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
