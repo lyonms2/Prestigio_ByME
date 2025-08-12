@@ -354,7 +354,7 @@ if st.session_state.df_principais is not None:
                     <a href="{url}" target="_blank" style="
                         text-decoration:none;
                         color:white;
-                        background-color:#002efb;
+                        background-color:#07097d;
                         padding:4px 9px;
                         border-radius:3px;
                         display:inline-block;
@@ -413,7 +413,7 @@ if st.session_state.df_restantes is not None:
                     <a href="{url}" target="_blank" style="
                         text-decoration:none;
                         color:white;
-                        background-color:#002efb;
+                        background-color:#07097d;
                         padding:4px 9px;
                         border-radius:3px;
                         display:inline-block;
@@ -443,6 +443,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
