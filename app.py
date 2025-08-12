@@ -195,7 +195,7 @@ with col1:
 with col2:
     tf2_label = st.selectbox("⏳ Segundo Timeframe", list(opcoes_timeframe.keys()), index=3)  # padrão 4h
 with col3:
-    corretora_label = st.selectbox("🏦 Corretora", ["Binance", "Bybit", "Hyperliquid", "mexc", "kucoin", index=0)
+    corretora_label = st.selectbox("🏦 Corretora", ["Binance", "Bybit", "Hyperliquid", "mexc", "kucoin"] index=0)
 
 tf1 = opcoes_timeframe[tf1_label]
 tf2 = opcoes_timeframe[tf2_label]
@@ -462,6 +462,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
