@@ -318,13 +318,13 @@ corretoras_links = {
         "color": "#262624",
         "text_color": "white",
         "emoji": "🔵"
-    }
+    },    
     "kucoin": {
         "func": kucoin_link,
         "color": "#262624",
         "text_color": "white",
         "emoji": "🟢"
-    }
+    },
     "mexc": {
         "func": mexc_link,
         "color": "#262624",
@@ -462,6 +462,7 @@ if st.session_state.df_restantes is not None:
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
         
+
 
 
 
