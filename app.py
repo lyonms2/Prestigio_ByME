@@ -210,81 +210,49 @@ tipo_candle = st.radio(
 )
 
 def carregar_dados(symbols):
+    """
+    Função principal para carregar dados de múltiplos símbolos, calcular indicadores técnicos
+    e sinais UT Bot Alert para dois timeframes diferentes, retornando um DataFrame consolidado.
+    """
     resultados = []
     progresso = st.progress(0)
     status_text = st.empty()
     total = len(symbols)
+
+    # Loop pelos símbolos selecionados
     for i, symbol in enumerate(symbols):
         status_text.text(f"Carregando dados: {symbol} ({i+1}/{total})")
         try:
-            # -------- Timeframe 1 --------
-            ohlcv_tf1 = exchange.fetch_ohlcv(symbol, timeframe=tf1, limit=100)
-            df_tf1 = pd.DataFrame(ohlcv_tf1, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df_tf1['timestamp'] = pd.to_datetime(df_tf1['timestamp'], unit='ms')
-            ha_df_tf1 = get_heikin_ashi(df_tf1)
+            # ---------------------- Timeframe 1 ----------------------
+            df_tf1 = obter_dados(symbol, tf1)  # Puxa OHLCV e converte timestamp
+            base_tf1 = get_base_candle(df_tf1)  # Seleciona Heikin Ashi ou velas comuns
+            sinais_tf1 = calcular_sinais(base_tf1, df_tf1)  # Calcula RSI, Stoch RSI, EMA20, UT Bot e volume
 
-            tendencia_tf1 = analyze_ha_trend(ha_df_tf1)
-            volume_alerta_tf1 = detect_volume_spike(df_tf1)
+            # ---------------------- Timeframe 2 ----------------------
+            df_tf2 = obter_dados(symbol, tf2)
+            base_tf2 = get_base_candle(df_tf2)
+            sinais_tf2 = calcular_sinais(base_tf2, df_tf2)
 
-            # Escolha de base para indicadores
-            base_tf1 = ha_df_tf1 if tipo_candle == "Heikin Ashi" else df_tf1
-
-            # RSI
-            rsi_tf1 = RSIIndicator(close=base_tf1["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf1["close"], window=14).rsi()
-            rsi_valor_tf1 = round(rsi_tf1.iloc[-1], 2)
-            rsi_status_tf1 = f"{rsi_valor_tf1} - {classificar_rsi(rsi_valor_tf1)}"
-
-            # Stoch RSI
-            stochrsi_k_tf1, stochrsi_d_tf1 = calculate_stochrsi(base_tf1["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf1["close"])
-            stoch_signal_tf1, stoch_value_tf1 = stochrsi_signal(stochrsi_k_tf1, stochrsi_d_tf1)
-            stoch_str_tf1 = f"{stoch_signal_tf1} ({round(stoch_value_tf1 * 100, 2)})" if stoch_value_tf1 is not None else stoch_signal_tf1
-            
-            # EMA 20
-            ema_tf1 = EMAIndicator(close=base_tf1["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf1["close"], window=20).ema_indicator()
-            ema_signal_tf1 = " ⬆️ 🟢 " if (base_tf1["HA_Close"].iloc[-1] if tipo_candle == "Heikin Ashi" else base_tf1["close"].iloc[-1]) > ema_tf1.iloc[-1] else " ⬇️ 🔴 "
-
-            # -------- Timeframe 2 --------
-            ohlcv_tf2 = exchange.fetch_ohlcv(symbol, timeframe=tf2, limit=100)
-            df_tf2 = pd.DataFrame(ohlcv_tf2, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df_tf2['timestamp'] = pd.to_datetime(df_tf2['timestamp'], unit='ms')
-            ha_df_tf2 = get_heikin_ashi(df_tf2)
-
-            tendencia_tf2 = analyze_ha_trend(ha_df_tf2)
-            volume_alerta_tf2 = detect_volume_spike(df_tf2)
-
-            # Escolha de base para indicadores
-            base_tf2 = ha_df_tf2 if tipo_candle == "Heikin Ashi" else df_tf2
-
-            # RSI
-            rsi_tf2 = RSIIndicator(close=base_tf2["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf2["close"], window=14).rsi()
-            rsi_valor_tf2 = round(rsi_tf2.iloc[-1], 2)
-            rsi_status_tf2 = f"{rsi_valor_tf2} - {classificar_rsi(rsi_valor_tf2)}"
-
-            # Stoch RSI
-            stochrsi_k_tf2, stochrsi_d_tf2 = calculate_stochrsi(base_tf2["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf2["close"])
-            stoch_signal_tf2, stoch_value_tf2 = stochrsi_signal(stochrsi_k_tf2, stochrsi_d_tf2)
-            stoch_str_tf2 = f"{stoch_signal_tf2} ({round(stoch_value_tf2 * 100, 2)})" if stoch_value_tf2 is not None else stoch_signal_tf2
-            
-            # EMA 20
-            ema_tf2 = EMAIndicator(close=base_tf2["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf2["close"], window=20).ema_indicator()
-            ema_signal_tf2 = " ⬆️ 🟢 " if (base_tf2["HA_Close"].iloc[-1] if tipo_candle == "Heikin Ashi" else base_tf2["close"].iloc[-1]) > ema_tf2.iloc[-1] else " ⬇️ 🔴 "
-
+            # ---------------------- Consolidar resultados ----------------------
             resultados.append((
                 symbol,
-                tendencia_tf1, tendencia_tf2,
-                rsi_status_tf1, rsi_status_tf2,
-                stoch_str_tf1, stoch_str_tf2,
-                ema_signal_tf1, ema_signal_tf2,
-                volume_alerta_tf1, volume_alerta_tf2
+                sinais_tf1['tendencia'], sinais_tf2['tendencia'],
+                sinais_tf1['rsi'], sinais_tf2['rsi'],
+                sinais_tf1['stoch'], sinais_tf2['stoch'],
+                sinais_tf1['ema'], sinais_tf2['ema'],
+                sinais_tf1['volume'], sinais_tf2['volume'],
+                sinais_tf1['ut'], sinais_tf2['ut']
             ))
 
         except Exception as e:
-            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", "", "", ""))
+            # Em caso de erro, mantém o símbolo mas deixa colunas vazias
+            resultados.append((symbol, f"Erro: {str(e)}", "", "", "", "", "", "", "", "", "", "", ""))
 
-        progresso.progress((i+1) / total)
+        progresso.progress((i + 1) / total)
 
     status_text.text("Carregamento concluído!")
 
+    # ---------------------- Retornar DataFrame ----------------------
     return pd.DataFrame(
         resultados,
         columns=[
@@ -293,9 +261,73 @@ def carregar_dados(symbols):
             f"RSI {tf1_label}", f"RSI {tf2_label}",
             f"Stoch RSI {tf1_label}", f"Stoch RSI {tf2_label}",
             f"EMA20 {tf1_label}", f"EMA20 {tf2_label}",
-            f"Vol {tf1_label}", f"Vol {tf2_label}"
+            f"Vol {tf1_label}", f"Vol {tf2_label}",
+            f"UT Bot {tf1_label}", f"UT Bot {tf2_label}"
         ]
     )
+
+# ---------------------- Funções auxiliares ----------------------
+def obter_dados(symbol, timeframe):
+    """
+    Busca OHLCV de um símbolo em determinado timeframe e retorna DataFrame com timestamp convertido
+    """
+    ohlcv = exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=100)
+    df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+    return df
+
+def get_base_candle(df):
+    """
+    Retorna o DataFrame base de velas dependendo da configuração do usuário
+    """
+    if tipo_candle == "Heikin Ashi":
+        return get_heikin_ashi(df)
+    else:
+        return df
+
+def calcular_sinais(base_df, raw_df):
+    """
+    Calcula indicadores e sinais técnicos para o DataFrame base:
+    - Tendência Heikin Ashi
+    - Volume spike
+    - RSI
+    - Stoch RSI
+    - EMA20
+    - UT Bot Alert
+    """
+    # Tendência Heikin Ashi
+    tendencia = analyze_ha_trend(get_heikin_ashi(raw_df))
+
+    # Volume spike
+    volume = detect_volume_spike(raw_df)
+
+    # RSI
+    close_col = base_df["HA_Close"] if tipo_candle == "Heikin Ashi" else base_df["close"]
+    rsi_val = round(RSIIndicator(close=close_col, window=14).rsi().iloc[-1], 2)
+    rsi = f"{rsi_val} - {classificar_rsi(rsi_val)}"
+
+    # Stoch RSI
+    stoch_k, stoch_d = calculate_stochrsi(close_col)
+    stoch_signal, stoch_val = stochrsi_signal(stoch_k, stoch_d)
+    stoch = f"{stoch_signal} ({round(stoch_val * 100, 2)})" if stoch_val is not None else stoch_signal
+
+    # EMA20
+    ema_val = EMAIndicator(close=close_col, window=20).ema_indicator().iloc[-1]
+    ema = " ⬆️ 🟢 " if close_col.iloc[-1] > ema_val else " ⬇️ 🔴 "
+
+    # UT Bot Alert
+    ut_df = ut_bot_alert(base_df, candle_type=tipo_candle, atr_period=1, multiplier=2)
+    ut = ut_df['UT_Signal'].iloc[-1]
+
+    return {
+        "tendencia": tendencia,
+        "volume": volume,
+        "rsi": rsi,
+        "stoch": stoch,
+        "ema": ema,
+        "ut": ut
+    }
+
 
 # Edição Corretoras ---
 corretoras_links = {
@@ -473,3 +505,4 @@ if st.session_state.df_restantes is not None:
 
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
