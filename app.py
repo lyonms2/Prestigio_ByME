@@ -169,12 +169,16 @@ def stochrsi_signal(stochrsi_k, stochrsi_d):
     last_d = stochrsi_d.iloc[-1]
     prev_d = stochrsi_d.iloc[-2]
     if pd.isna(last_k) or pd.isna(prev_k) or pd.isna(last_d) or pd.isna(prev_d):
-        return "Indefinido", None
-    if last_d < last_k and last_d > prev_d:
-        return last_d, "📈 Subindo"
-    if last_d > last_k and last_d < prev_d:
-        return last_d, "📉 Descendo"
-    return last_d, "🚨 Cruzando"
+        return None, "Indefinido"
+    # Sinal de alta
+    if last_k > last_d and prev_k <= prev_d:
+        return last_k, "📈 Subindo"
+
+    # Sinal de baixa
+    if last_k < last_d and prev_k >= prev_d:
+        return last_k, "📉 Descendo"
+    
+    return last_k, "🚨 Cruzando"
 
 st.title("📊 Monitor de Criptomoedas")
 
@@ -475,6 +479,7 @@ if st.session_state.df_restantes is not None:
 
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
 
 
