@@ -209,8 +209,6 @@ tipo_candle = st.radio(
     horizontal=True
 )
 
-# ...
-
 def carregar_dados(symbols):
     resultados = []
     progresso = st.progress(0)
@@ -239,7 +237,7 @@ def carregar_dados(symbols):
             # Stoch RSI
             stochrsi_k_tf1, stochrsi_d_tf1 = calculate_stochrsi(base_tf1["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf1["close"])
             stoch_signal_tf1, stoch_value_tf1 = stochrsi_signal(stochrsi_k_tf1, stochrsi_d_tf1)
-            stoch_str_tf1 = f"{stoch_signal_tf1} ({round(stoch_value_tf1, 2)})" if stoch_value_tf1 is not None else stoch_signal_tf1
+            stoch_str_tf1 = f"{stoch_signal_tf1} ({round(stoch_value_tf1 * 100, 2)})" if stoch_value_tf1 is not None else stoch_signal_tf1
             
             # EMA 20
             ema_tf1 = EMAIndicator(close=base_tf1["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf1["close"], window=20).ema_indicator()
@@ -265,7 +263,7 @@ def carregar_dados(symbols):
             # Stoch RSI
             stochrsi_k_tf2, stochrsi_d_tf2 = calculate_stochrsi(base_tf2["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf2["close"])
             stoch_signal_tf2, stoch_value_tf2 = stochrsi_signal(stochrsi_k_tf2, stochrsi_d_tf2)
-            stoch_str_tf2 = f"{stoch_signal_tf2} ({round(stoch_value_tf2, 2)})" if stoch_value_tf2 is not None else stoch_signal_tf2
+            stoch_str_tf2 = f"{stoch_signal_tf2} ({round(stoch_value_tf2 * 100, 2)})" if stoch_value_tf2 is not None else stoch_signal_tf2
             
             # EMA 20
             ema_tf2 = EMAIndicator(close=base_tf2["HA_Close"] if tipo_candle == "Heikin Ashi" else base_tf2["close"], window=20).ema_indicator()
@@ -475,20 +473,3 @@ if st.session_state.df_restantes is not None:
 
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
