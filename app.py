@@ -185,8 +185,10 @@ opcoes_timeframe = {
     "15 Minutos": "15m",
     "30 Minutos": "30m",
     "1 Hora": "1h",
+    "2 Horas": "2h"
     "4 Horas": "4h",
-    "Diário": "1d"
+    "Diário": "1d",
+    "Semanal": "1w"
 }
 
 col1, col2, col3 = st.columns(3)
@@ -473,4 +475,5 @@ if st.session_state.df_restantes is not None:
 
     else:
         st.dataframe(st.session_state.df_restantes, use_container_width=True)
+
 
